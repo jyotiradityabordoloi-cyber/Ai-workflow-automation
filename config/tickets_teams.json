@@ -1,0 +1,29 @@
+{
+  "_readme": "Portfolio demo profile: route tickets for the fictional company Nimbus3D to the team that should own them.",
+  "product_name": "Nimbus3D",
+  "product_context": "Nimbus3D, a SaaS platform for 3D virtual property tours used by real-estate developers and their sales teams (tickets come from clients and internal staff)",
+  "categories": ["business_team", "developer", "support_team", "product", "qa_automation"],
+  "fallback_category": "support_team",
+  "category_rubric": "business_team = commercial matters: quotes, pricing, contracts, renewals, invoices, POs, refunds, credits, discounts, partnerships, case studies; developer = something in the software is broken or wrong and needs a code fix: errors, crashes, failing APIs, integrations, webhooks, wrong data shown, performance regressions, browser or device-specific bugs; support_team = helping a user use the product or their account: how-to questions, logins, passwords, 2FA, adding or removing users, exports, training, account status; product = ideas and decisions about what the product should do: feature requests, UX or layout feedback, roadmap questions, questions about why a feature changed or was removed; qa_automation = testing work: failing or flaky automated tests, CI test failures, regression runs, writing test cases, updating test baselines, reproducing a reported bug, test environments.",
+  "sentiment_rubric": "angry = hostile or threatening language, ALL CAPS, ultimatums, words like disaster or unacceptable; frustrated = annoyed or under pressure but civil; neutral = matter-of-fact; positive = thanks or enthusiasm. Urgency alone is not anger.",
+  "priority_rubric": "P1 = down or wrong for many users or on a live site, security or account suspension blocking a business, money charged wrongly with an ultimatum; P2 = broken or blocked for one client, team or flow with real impact, commercial requests with money or a deadline attached, release-blocking test work; P3 = how-to questions, feature ideas and roadmap questions, cosmetic issues, nice-to-have tasks.",
+  "example_message": "Unit availability in our tour hasn't updated since the inventory sync failed overnight; three sold units still show as available.",
+  "example_result": {"category": "developer", "priority": "P2", "sentiment": "neutral", "confidence": 0.9, "summary": "Overnight inventory sync failed, so sold units still show as available in the tour. Needs a fix to the sync."},
+  "confidence_threshold": 0.7,
+  "accuracy_target_pct": 94,
+  "manager_review_keywords": ["legal", "lawyer", "refund", "chargeback"],
+  "min_words": 4,
+  "top_k_similar": 3,
+  "draft_replies": true,
+  "ticket_url_template": "https://nimbus3d.example/desk/tickets/{id}",
+  "slack_channel": "#support-escalations",
+  "team_channels": {
+    "developer": "#dev-escalations",
+    "qa_automation": "#qa-escalations",
+    "business_team": "#business-escalations",
+    "product": "#product-escalations",
+    "support_team": "#support-escalations"
+  },
+  "history_file": "data/tickets/teams_resolved.jsonl",
+  "baseline_file": "baseline_tickets.json"
+}

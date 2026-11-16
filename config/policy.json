@@ -1,0 +1,28 @@
+{
+  "currency": "INR",
+  "receipt_required_types": ["expense", "travel", "purchase"],
+  "receipt_required_above": 2000,
+  "max_discount_pct": 10,
+  "sla_days": 3,
+  "fast_track_max_amount": 100000,
+  "blocked_keywords": ["personal", "family", "netflix", "gift card", "alcohol", "home"],
+  "approval_matrix": [
+    {"max_amount": 25000, "level": "Manager"},
+    {"max_amount": 100000, "level": "Department Head"},
+    {"max_amount": 500000, "level": "Finance Director"},
+    {"max_amount": null, "level": "CFO"}
+  ],
+  "approvers": {
+    "Sales":       {"Manager": "Priya Nair",   "Department Head": "Rahul Mehta"},
+    "Marketing":   {"Manager": "Anjali Sen",   "Department Head": "Karan Bose"},
+    "Engineering": {"Manager": "Vivek Rao",    "Department Head": "Divya Menon"},
+    "Operations":  {"Manager": "Suresh Kumar", "Department Head": "Pooja Bhatt"},
+    "Finance":     {"Manager": "Nikhil Jain",  "Department Head": "Ritu Agarwal"},
+    "*": {
+      "Manager": "Finance Ops Desk",
+      "Department Head": "Finance Ops Desk",
+      "Finance Director": "Anita Rao",
+      "CFO": "Vikram Singh"
+    }
+  }
+}

@@ -1,0 +1,279 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Nimbus3D Ticket Router</title>
+<meta name="description" content="Live demo: an LLM routes support tickets to the right team, with code-level guardrails and measured accuracy.">
+<style>
+:root{
+  --bg:#f6f5f2;--surface:#fff;--sunken:#efeee9;--ink:#1b1b19;--muted:#65645e;--line:#e2e0d9;--accent:#2f5bd3;--accent-ink:#fff;
+  --ok:#1f7a4d;--warn:#9a5b00;--bad:#b42318;
+  --t-developer:#2f5bd3;--t-qa_automation:#7a3fc4;--t-product:#0f7f7a;--t-business_team:#a86200;--t-support_team:#2b7a37;
+  --radius:12px;--shadow:0 1px 2px rgba(0,0,0,.04),0 4px 16px rgba(0,0,0,.04)
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#121211;--surface:#1b1b1a;--sunken:#232321;--ink:#ecebe6;--muted:#9c9b94;--line:#2e2e2b;--accent:#7d9cff;--accent-ink:#0d1020;
+  --ok:#5cc28f;--warn:#e3a54c;--bad:#f07167;
+  --t-developer:#7d9cff;--t-qa_automation:#b98cf2;--t-product:#4cc7c0;--t-business_team:#e3a54c;--t-support_team:#6fcf7f;--shadow:none}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.55 system-ui,-apple-system,"Segoe UI",sans-serif;-webkit-font-smoothing:antialiased}
+a{color:var(--accent)}
+.wrap{max-width:1120px;margin:0 auto;padding:0 16px}
+header.top{display:flex;align-items:center;justify-content:space-between;padding:18px 0;gap:12px}
+.brand{font-weight:650;letter-spacing:-.01em}
+.brand span{color:var(--muted);font-weight:500}
+.badge{font-size:12px;padding:3px 10px;border-radius:99px;border:1px solid var(--line);color:var(--muted);white-space:nowrap}
+.badge.demo{color:var(--warn);border-color:currentColor}
+.hero{padding:28px 0 8px}
+h1{font-size:clamp(28px,4.4vw,44px);line-height:1.08;letter-spacing:-.025em;margin:0 0 12px;max-width:16ch}
+.lede{color:var(--muted);font-size:17px;max-width:62ch;margin:0}
+.stats{display:flex;gap:28px;flex-wrap:wrap;margin:24px 0 8px}
+.stat b{display:block;font-size:26px;letter-spacing:-.02em;font-variant-numeric:tabular-nums}
+.stat span{color:var(--muted);font-size:13px}
+.grid{display:grid;grid-template-columns:minmax(0,5fr) minmax(0,7fr);gap:20px;margin:28px 0}
+@media (max-width:860px){.grid{grid-template-columns:1fr}}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);padding:18px;box-shadow:var(--shadow)}
+label{display:block;font-size:13px;font-weight:600;margin:0 0 6px}
+input[type=text],textarea{width:100%;font:inherit;color:inherit;background:var(--sunken);border:1px solid var(--line);border-radius:8px;padding:10px 12px}
+input[type=text]:focus,textarea:focus{outline:2px solid var(--accent);outline-offset:1px}
+textarea{min-height:150px;resize:vertical}
+.field{margin-bottom:14px}
+.row{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
+.muted{color:var(--muted);font-size:13px}
+.check{display:flex;gap:8px;align-items:center;font-size:14px;font-weight:500;margin:0}
+button.primary{font:inherit;font-weight:600;background:var(--accent);color:var(--accent-ink);border:0;border-radius:8px;padding:10px 18px;cursor:pointer;transition:transform .12s ease,opacity .12s}
+button.primary:active{transform:scale(.97)}
+button.primary:disabled{opacity:.55;cursor:progress}
+.chips{display:flex;flex-wrap:wrap;gap:6px;margin:4px 0 16px}
+.chip{font:inherit;font-size:13px;background:transparent;color:var(--ink);border:1px solid var(--line);border-radius:99px;padding:4px 10px;cursor:pointer}
+.chip:hover{border-color:var(--accent)}
+.empty{display:grid;place-items:center;min-height:320px;text-align:center;color:var(--muted)}
+.team{display:flex;align-items:center;gap:10px;font-size:24px;font-weight:650;letter-spacing:-.015em}
+.dot{width:12px;height:12px;border-radius:50%;background:var(--team,var(--muted));flex:none}
+.pills{display:flex;gap:6px;flex-wrap:wrap;margin:10px 0}
+.pill{font-size:12px;padding:2px 9px;border-radius:99px;border:1px solid var(--line)}
+.pill.p1,.pill.bad{color:var(--bad);border-color:currentColor}
+.conf{margin:12px 0 4px}
+.bar{position:relative;height:8px;border-radius:99px;background:var(--sunken);overflow:visible}
+.bar i{display:block;height:100%;border-radius:99px;background:var(--accent);transition:width .5s cubic-bezier(.2,.8,.2,1)}
+.bar .th{position:absolute;top:-4px;bottom:-4px;width:2px;background:var(--ink);opacity:.5}
+.callout{border-left:3px solid var(--warn);background:var(--sunken);padding:8px 12px;border-radius:0 8px 8px 0;margin:8px 0;font-size:14px}
+.callout.bad{border-color:var(--bad)}
+h3{font-size:13px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);margin:20px 0 8px}
+pre{white-space:pre-wrap;word-break:break-word;margin:0;font:13.5px/1.55 ui-monospace,SFMono-Regular,Consolas,monospace;background:var(--sunken);border-radius:8px;padding:12px}
+.timeline{display:grid;gap:4px}
+.tl{display:grid;grid-template-columns:120px 1fr 48px;gap:8px;align-items:center;font-size:12px}
+.tl .track{position:relative;height:10px;background:var(--sunken);border-radius:4px}
+.tl .seg{position:absolute;top:0;bottom:0;border-radius:4px;background:var(--accent);min-width:2px;opacity:.85}
+.tl .seg.llm{background:var(--t-qa_automation)}
+.tl .num{text-align:right;font-variant-numeric:tabular-nums;color:var(--muted)}
+ul.sim{list-style:none;padding:0;margin:0;display:grid;gap:8px}
+ul.sim li{background:var(--sunken);border-radius:8px;padding:8px 10px;font-size:14px}
+section.block{margin:44px 0}
+h2{font-size:24px;letter-spacing:-.02em;margin:0 0 6px}
+table{width:100%;border-collapse:collapse;font-size:14px}
+th,td{padding:9px 10px;border-bottom:1px solid var(--line);text-align:left}
+th{font-size:12px;text-transform:uppercase;letter-spacing:.05em;color:var(--muted);font-weight:600}
+td.n,th.n{text-align:right;font-variant-numeric:tabular-nums}
+.cols{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:16px;margin-top:16px}
+.steps{counter-reset:s;list-style:none;padding:0;margin:0;display:grid;gap:10px}
+.steps li{counter-increment:s;padding-left:34px;position:relative}
+.steps li::before{content:counter(s);position:absolute;left:0;top:0;width:24px;height:24px;border-radius:50%;background:var(--sunken);display:grid;place-items:center;font-size:12px;font-weight:650}
+.spinner{display:inline-block;width:14px;height:14px;border:2px solid currentColor;border-right-color:transparent;border-radius:50%;animation:spin .8s linear infinite;vertical-align:-2px;margin-right:6px}
+@keyframes spin{to{transform:rotate(360deg)}}
+.fade{animation:fade .35s ease both}
+@keyframes fade{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+footer{border-top:1px solid var(--line);padding:24px 0 40px;color:var(--muted);font-size:13px}
+.err{color:var(--bad);font-size:14px;margin-top:8px;min-height:1em}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="top">
+    <div class="brand">Nimbus3D <span>· Ticket Router</span></div>
+    <div id="model" class="badge">loading…</div>
+  </header>
+
+  <section class="hero">
+    <h1>Every ticket to the right team, in seconds.</h1>
+    <p class="lede">Paste a support ticket. An LLM tags it and routes it to <b>Business</b>, <b>Developer</b>, <b>Support</b>, <b>Product</b> or <b>QA / Automation</b>,
+      drafts a reply grounded in past resolutions, and code-level guardrails decide when a human has to take over.</p>
+    <div class="stats" id="stats"></div>
+  </section>
+
+  <div class="grid">
+    <form class="card" id="form" autocomplete="off">
+      <div class="muted" style="margin-bottom:6px">Try an example</div>
+      <div class="chips" id="chips"></div>
+      <div class="field"><label for="subject">Subject</label><input type="text" id="subject" maxlength="200" placeholder="e.g. Enquiry form stuck on Safari"></div>
+      <div class="field">
+        <label for="body">Message</label>
+        <textarea id="body" maxlength="2000" placeholder="Write the ticket the way a customer or colleague would…"></textarea>
+        <div class="row"><span class="muted"><span id="count">0</span> / 2000</span></div>
+      </div>
+      <div class="row">
+        <label class="check"><input type="checkbox" id="escalate"> Agent marks it for escalation</label>
+        <button class="primary" id="go" type="submit">Route ticket</button>
+      </div>
+      <div class="err" id="err" role="alert"></div>
+    </form>
+
+    <div class="card" id="out" aria-live="polite">
+      <div class="empty"><div><b>Result appears here</b><br><span class="muted">Pick an example or write your own ticket.</span></div></div>
+    </div>
+  </div>
+
+  <section class="block">
+    <h2>Measured, not claimed</h2>
+    <p class="muted" style="margin:0 0 14px;max-width:70ch">The prompt was tuned on a dev set, then frozen and scored once on a separate held-out test set. Every score sits next to “always guess the most common answer”, which is the bar a classifier has to beat.</p>
+    <div class="card" style="padding:6px 8px;overflow-x:auto"><table id="acc"></table></div>
+    <div class="cols" id="impact"></div>
+  </section>
+
+  <section class="block">
+    <h2>How it works</h2>
+    <div class="cols">
+      <div class="card"><ol class="steps">
+        <li><b>Precheck (code)</b><br><span class="muted">Too short, non-Latin script, or mentions legal / refund / chargeback?</span></li>
+        <li><b>Classify (LLM)</b><br><span class="muted">Team, priority, sentiment, confidence and a two-line summary.</span></li>
+        <li><b>Triage (code)</b><br><span class="muted">Confidence &lt; 0.7 → manual review. Angry + P1 → senior agent. Legal/refund → manager first.</span></li>
+        <li><b>Retrieve + draft (LLM)</b><br><span class="muted">BM25 finds the 3 closest resolved tickets; the reply is grounded in them.</span></li>
+        <li><b>Escalate</b><br><span class="muted">A Slack brief goes to the owning team's channel and waits for an agent to confirm it.</span></li>
+      </ol></div>
+      <div class="card">
+        <b>Guardrails in code, not just in the prompt</b>
+        <ul style="padding-left:18px;margin:8px 0 0">
+          <li>Low-confidence tickets reach the agent with <i>no</i> AI suggestion.</li>
+          <li>Drafts on legal / refund tickets can only acknowledge; any mention of a refund, credit or approval is replaced.</li>
+          <li>Email addresses or links the model invents are flagged for the agent.</li>
+          <li>Nothing is sent or posted automatically.</li>
+        </ul>
+        <p class="muted" style="margin:12px 0 0">Stack: Python standard library only, a small task orchestrator that runs independent steps in parallel, BM25 retrieval, and a free LLM (Groq).</p>
+      </div>
+    </div>
+  </section>
+
+  <footer>Nimbus3D, its clients and all tickets are fictional. Built as a portfolio project. Please don't paste real personal data.</footer>
+</div>
+
+<script>
+const TEAM = {developer:"Developer", qa_automation:"QA / Automation", product:"Product", business_team:"Business", support_team:"Support"};
+const QUEUE = {senior:"Senior agent", standard:"Standard queue", manual_review:"Needs manual review"};
+const EXAMPLES = [
+  {label:"Live-site outage", subject:"Streaming tours drop after 60 seconds", body:"Every streamed tour disconnects after exactly 60 seconds for all users since last night. We tried Chrome, Edge and Safari on two different networks.", escalate:true},
+  {label:"Flaky CI test", subject:"Smoke test blocking merges", body:"Merges to main are blocked because the 'login as agent' smoke test fails on the CI runner. Please look into the test."},
+  {label:"Feature idea", subject:"Share tour on WhatsApp", body:"A share-to-WhatsApp button inside the tour would be super useful for our agents!"},
+  {label:"Chargeback threat", subject:"BILLED AGAIN FOR CANCELLED PROJECTS", body:"You billed us AGAIN for two projects we cancelled in August. If this isn't fixed today we will file a chargeback."},
+  {label:"Locked out", subject:"Reset link always expired", body:"Every password reset link I get says 'expired', even when I click it straight away. I've tried three times."},
+  {label:"Too vague", subject:"", body:"not loading"},
+  {label:"French", subject:"Connexion", body:"Bonjour, je n'arrive pas à me connecter au tableau de bord depuis ce matin."},
+];
+const $ = (s) => document.querySelector(s);
+const el = (tag, attrs = {}, ...kids) => {
+  const n = document.createElement(tag);
+  for (const [k, v] of Object.entries(attrs)) k === "class" ? n.className = v : k === "style" ? n.style.cssText = v : n.setAttribute(k, v);
+  for (const k of kids) if (k != null) n.append(k instanceof Node ? k : document.createTextNode(String(k)));
+  return n;
+};
+
+for (const ex of EXAMPLES) {
+  const b = el("button", {type:"button", class:"chip"}, ex.label);
+  b.onclick = () => { $("#subject").value = ex.subject; $("#body").value = ex.body; $("#escalate").checked = !!ex.escalate; $("#count").textContent = ex.body.length; $("#body").focus(); };
+  $("#chips").append(b);
+}
+$("#body").addEventListener("input", (e) => $("#count").textContent = e.target.value.length);
+
+fetch("/healthz").then(r => r.json()).then(h => {
+  const b = $("#model");
+  b.textContent = h.demo_mode ? "Demo mode · no API key, heuristic stand-in" : `Live · ${h.model.provider} · ${h.model.model}`;
+  if (h.demo_mode) b.classList.add("demo");
+}).catch(() => $("#model").textContent = "offline");
+
+fetch("/api/showcase").then(r => r.json()).then(renderShowcase).catch(() => {});
+
+function renderShowcase(s) {
+  const r = s.routing, a = s.approvals;
+  const stats = [
+    [`${r.category.ai}%`, `routing accuracy on ${r.test_size} held-out tickets`],
+    [`${r.category.baseline}%`, "if you always guessed the most common team"],
+    [`${r.impact.saved_pct}%`, "less agent time per batch (estimated baseline)"],
+  ];
+  $("#stats").replaceChildren(...stats.map(([b, t]) => el("div", {class:"stat"}, el("b", {}, b), el("span", {}, t))));
+  const t = $("#acc");
+  t.replaceChildren(el("tr", {}, el("th", {}, `Held-out test set (${r.test_size} tickets)`), el("th", {class:"n"}, "AI"), el("th", {class:"n"}, "Always most common")),
+    ...[["Team routing", r.category], ["Priority (P1–P3)", r.priority], ["Sentiment", r.sentiment]].map(([n, v]) =>
+      el("tr", {}, el("td", {}, n), el("td", {class:"n"}, el("b", {}, `${v.ai}%`)), el("td", {class:"n"}, `${v.baseline}%`))),
+    el("tr", {}, el("td", {}, "Vague or non-English tickets sent to manual review"), el("td", {class:"n"}, r.manual_caught), el("td", {class:"n"}, "")));
+  $("#impact").replaceChildren(
+    el("div", {class:"card"}, el("b", {}, "Ticket routing time"), el("p", {class:"muted", style:"margin:6px 0 0"},
+      `${r.impact.batch} tickets: ${r.impact.manual_min} min by hand → ${r.impact.automated_min} min of human review, plus ${r.impact.machine_s}s of machine time. Manual minutes are estimates until someone times the real process.`)),
+    el("div", {class:"card"}, el("b", {}, "Second workflow: approval reporting"), el("p", {class:"muted", style:"margin:6px 0 0"},
+      `${a.requests} approval requests checked against policy: ${a.manual_min} min by hand → ${a.machine_s}s machine + ${a.human_min} min review. On a local CPU model the same run took ${a.local_s}s.`)),
+    el("div", {class:"card"}, el("b", {}, "Honest caveats"), el("p", {class:"muted", style:"margin:6px 0 0"},
+      `${r.test_size} tickets is a small sample: one miss moves accuracy by ${(100 / r.test_size).toFixed(1)} points. Sentiment is the weakest field. All data is fictional.`)));
+}
+
+$("#form").addEventListener("submit", async (e) => {
+  e.preventDefault();
+  const body = $("#body").value.trim();
+  $("#err").textContent = "";
+  if (!body) { $("#err").textContent = "Write a message first."; return; }
+  const btn = $("#go");
+  btn.disabled = true; btn.replaceChildren(el("span", {class:"spinner"}), "Routing…");
+  $("#out").replaceChildren(el("div", {class:"empty"}, el("div", {}, el("span", {class:"spinner"}), "Classifying, retrieving similar tickets, drafting…")));
+  try {
+    const res = await fetch("/api/triage", {method:"POST", headers:{"Content-Type":"application/json"},
+      body: JSON.stringify({subject: $("#subject").value, body, escalate: $("#escalate").checked})});
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || "Request failed");
+    renderResult(data);
+  } catch (err) {
+    $("#out").replaceChildren(el("div", {class:"empty"}, el("div", {}, el("b", {}, "Couldn't route that ticket"), el("br"), el("span", {class:"muted"}, err.message))));
+  } finally {
+    btn.disabled = false; btn.textContent = "Route ticket";
+  }
+});
+
+function renderResult(d) {
+  const r = d.result, ai = r.ai, out = [];
+  if (ai) {
+    const team = el("div", {class:"team", style:`--team:var(--t-${ai.category})`}, el("span", {class:"dot"}), TEAM[ai.category] || ai.category);
+    out.push(el("div", {class:"muted"}, "Routed to"), team,
+      el("div", {class:"pills"}, el("span", {class:`pill ${ai.priority === "P1" ? "p1" : ""}`}, ai.priority),
+        el("span", {class:"pill"}, ai.sentiment), el("span", {class:`pill ${r.queue !== "standard" ? "bad" : ""}`}, QUEUE[r.queue])));
+  } else {
+    out.push(el("div", {class:"muted"}, "Routed to"), el("div", {class:"team", style:"--team:var(--warn)"}, el("span", {class:"dot"}), "Needs manual review"),
+      el("p", {class:"muted", style:"margin:6px 0"}, "No AI suggestion is shown: an agent triages this one by hand."));
+  }
+  const pct = Math.round((r.confidence || 0) * 100);
+  const bar = el("div", {class:"bar"}, el("i", {style:"width:0%"}), el("span", {class:"th", style:"left:70%", title:"0.7 threshold"}));
+  out.push(el("div", {class:"conf"}, el("div", {class:"row muted"}, el("span", {}, "Confidence"), el("span", {}, `${(r.confidence || 0).toFixed(2)} · threshold 0.70`)), bar));
+  requestAnimationFrame(() => bar.firstChild.style.width = pct + "%");
+  if (ai && ai.summary) out.push(el("p", {style:"margin:12px 0 0"}, ai.summary));
+  for (const reason of r.reasons || []) out.push(el("div", {class:`callout ${/manager|Angry/.test(reason) ? "bad" : ""}`}, reason));
+  if (r.manager_review) out.push(el("div", {class:"callout bad"}, "No reply goes out until a manager has reviewed this ticket."));
+  if (d.ai_error) out.push(el("div", {class:"callout"}, "The LLM didn't answer in time, so the ticket fell back to manual review."));
+
+  if (d.timings) {
+    const total = Math.max(d.timings.total_s, 0.001);
+    const llmSteps = new Set(["classify", "draft_replies", "escalation_briefs"]);
+    out.push(el("h3", {}, `Pipeline · ${total.toFixed(1)}s total`),
+      el("div", {class:"timeline"}, ...d.timings.tasks.filter(t => t.status !== "pending").map(t =>
+        el("div", {class:"tl"}, el("span", {}, t.name.replace(/_/g, " ")),
+          el("div", {class:"track"}, el("div", {class:`seg ${llmSteps.has(t.name) ? "llm" : ""}`, style:`left:${(t.start || 0) / total * 100}%;width:${t.seconds / total * 100}%`})),
+          el("span", {class:"num"}, t.seconds < 0.01 ? "<0.01s" : `${t.seconds.toFixed(2)}s`)))),
+      el("div", {class:"muted", style:"margin-top:4px"}, "Purple = LLM call. Bars that overlap ran in parallel."));
+  }
+  if (d.similar && d.similar.length) out.push(el("h3", {}, "Similar resolved tickets"),
+    el("ul", {class:"sim"}, ...d.similar.map(s => el("li", {}, el("b", {}, s.subject), el("div", {class:"muted"}, s.resolution)))));
+  if (d.draft) out.push(el("h3", {}, d.draft.blocked ? "Draft reply · replaced by guardrail" : "Draft reply · agent edits before sending"), el("pre", {}, d.draft.draft));
+  if (d.slack) out.push(el("h3", {}, `Slack brief → ${d.slack.channel} · awaiting agent confirmation`), el("pre", {}, d.slack.text));
+  out.push(el("p", {class:"muted", style:"margin:14px 0 0"}, d.demo_mode ? "Demo mode: heuristic stand-in, not an LLM." : `Model: ${d.model.provider} / ${d.model.model}`));
+  const wrap = el("div", {class:"fade"}, ...out);
+  $("#out").replaceChildren(wrap);
+}
+</script>
+</body>
+</html>

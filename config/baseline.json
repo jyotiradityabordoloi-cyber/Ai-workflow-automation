@@ -1,0 +1,18 @@
+{
+  "_readme": "Manual-process baseline used to calculate time saved. 'estimate' values are placeholders: replace them with real numbers by timing the manual process with `py main.py time-manual <step_id> --items N`. Measured timings automatically override estimates.",
+  "runs_per_month": 4.33,
+  "loaded_hourly_cost": 600,
+  "currency": "INR",
+  "manual_steps": [
+    {"id": "collect",      "name": "Export and consolidate requests from email / sheets",        "per": "run",             "minutes": 20},
+    {"id": "policy_check", "name": "Check each request against policy (receipts, limits, dupes)", "per": "request",         "minutes": 3.0},
+    {"id": "route",        "name": "Work out the right approver and forward the request",        "per": "pending_request", "minutes": 1.5},
+    {"id": "stats",        "name": "Build summary tables in Excel",                               "per": "run",             "minutes": 30},
+    {"id": "summary",      "name": "Write the management summary",                                "per": "run",             "minutes": 20},
+    {"id": "notify",       "name": "Send digests / reminders to each approver",                   "per": "approver",        "minutes": 3}
+  ],
+  "automated_human_steps": [
+    {"id": "review_report", "name": "Read the generated report",              "per": "run",             "minutes": 5},
+    {"id": "verify_flags",  "name": "Verify each flagged request by hand",     "per": "flagged_request", "minutes": 1.5}
+  ]
+}

@@ -1,0 +1,14 @@
+{
+  "product_name": "Acme Reports",
+  "categories": ["billing", "bug", "feature_request", "account", "other"],
+  "confidence_threshold": 0.7,
+  "accuracy_target_pct": 94,
+  "manager_review_keywords": ["legal", "lawyer", "refund", "chargeback"],
+  "min_words": 4,
+  "top_k_similar": 3,
+  "ticket_url_template": "https://YOUR-SUBDOMAIN.zendesk.com/agent/tickets/{id}",
+  "slack_channel": "#eng-escalations",
+  "category_rubric": "billing = charges, invoices, prices, plans, seats, refunds, payment methods; bug = something in the product behaves incorrectly; feature_request = asks for a capability the product does not have; account = login, passwords, users, roles, ownership, security, data deletion, compliance documents; other = sales, partnerships or anything else. A 'how do I...' question about existing functionality belongs to the area it is about (e.g. adding a user = account), not feature_request.",
+  "sentiment_rubric": "angry = hostile or threatening language, ALL CAPS, ultimatums, words like unacceptable; frustrated = annoyed or under pressure but civil; neutral = matter-of-fact; positive = thanks or enthusiasm. Urgency alone is not anger.",
+  "priority_rubric": "P1 = service down or broken for many users, security incident, money taken wrongly, or an angry customer who has already chased; P2 = something broken for one user/team with impact, account access problems, billing questions that need action; P3 = how-to questions, feature requests, minor cosmetic issues."
+}

@@ -1,0 +1,20 @@
+{
+  "_readme": "Manual support-triage baseline. 'estimate' values are placeholders until timed with `py main.py time-manual <step_id> --workflow tickets --items N`.",
+  "runs_per_month": 22,
+  "loaded_hourly_cost": 500,
+  "currency": "INR",
+  "manual_steps": [
+    {"id": "t_read_tag",   "name": "Read the ticket, pick category and priority",       "per": "ticket",     "minutes": 2.0},
+    {"id": "t_search",     "name": "Search past tickets for a similar resolution",      "per": "ticket",     "minutes": 4.0},
+    {"id": "t_draft",      "name": "Write the reply from scratch",                      "per": "ticket",     "minutes": 6.0},
+    {"id": "t_esc_brief",  "name": "Write the escalation message for engineering",      "per": "escalation", "minutes": 8.0},
+    {"id": "t_esc_chase",  "name": "Engineering asks back for missing details",         "per": "escalation", "minutes": 5.0}
+  ],
+  "automated_human_steps": [
+    {"id": "t_review_tag",  "name": "Agent checks the AI tag before accepting",                 "per": "ai_ticket",      "minutes": 0.5},
+    {"id": "t_edit_draft",  "name": "Agent edits the AI draft before sending",                 "per": "drafted_ticket", "minutes": 2.0},
+    {"id": "t_manual",      "name": "Low-confidence tickets handled fully by hand (2+4+6 min)", "per": "manual_ticket",  "minutes": 12.0},
+    {"id": "t_manager",     "name": "Manager reviews legal / refund / chargeback tickets",      "per": "manager_ticket", "minutes": 3.0},
+    {"id": "t_esc_confirm", "name": "Agent confirms the generated Slack brief",                 "per": "escalation",     "minutes": 1.0}
+  ]
+}

@@ -1,0 +1,8 @@
+.env
+__pycache__/
+*.pyc
+runs/
+data/real/
+config/tickets_servicedesk.json
+config/baseline_servicedesk.json
+.claude/

@@ -1,0 +1,49 @@
+request_id,submitted_at,requester,department,type,vendor,amount,currency,discount_pct,receipt_attached,description,status,decided_at,decided_by
+APR-1001,2026-11-03T11:31,Dev Patel,Operations,purchase,Dell India,16700,INR,,yes,Laptop replacement for new joiner,pending,,
+APR-1002,2026-11-05T03:21,Isha Verma,Marketing,purchase,Atlassian,53590,INR,,yes,Jira seats annual renewal,approved,2026-11-08T02:30,manager
+APR-1003,2026-11-06T18:36,Arjun Reddy,Engineering,purchase,Atlassian,100750,INR,,yes,Jira seats annual renewal,approved,2026-11-08T18:07,manager
+APR-1004,2026-11-07T05:40,Tanvi Desai,Finance,expense,Zomato,340,INR,,yes,Working lunch with client team,approved,2026-11-08T16:04,manager
+APR-1005,2026-11-07T20:26,Sneha Iyer,Engineering,expense,Chai Point,1050,INR,,yes,Snacks for sprint review,pending,,
+APR-1006,2026-11-07T23:42,Kabir Malhotra,Marketing,purchase,AWS,160170,INR,,yes,Reserved instances for staging,approved,2026-11-10T05:18,manager
+APR-1007,2026-11-08T09:48,Tanvi Desai,Finance,expense,Chai Point,1560,INR,,yes,Snacks for sprint review,approved,2026-11-11T06:02,manager
+APR-1008,2026-11-08T09:49,Neha Kapoor,Sales,discount,Metro Homes,72860,INR,5,n/a,Loyalty discount on renewal,approved,2026-11-10T13:55,manager
+APR-1009,2026-11-08T13:44,Tanvi Desai,Finance,expense,Staples,630,INR,,yes,Printer paper and stationery,pending,,
+APR-1010,2026-11-08T20:11,Meera Pillai,Engineering,travel,IRCTC,44810,INR,,yes,Train tickets for vendor audit,approved,2026-11-12T17:18,manager
+APR-1011,2026-11-09T05:13,Neha Kapoor,Sales,purchase,Dell India,125250,INR,,yes,Laptop replacement for new joiner,approved,2026-11-11T01:12,manager
+APR-1012,2026-11-09T11:15,Meera Pillai,,purchase,Amazon Business,12800,INR,,yes,Whiteboards for project room,pending,,
+APR-1013,2026-11-09T16:24,Rohan Gupta,Sales,discount,Metro Homes,76900,INR,7,n/a,Loyalty discount on renewal,pending,,
+APR-1014,2026-11-09T21:28,Aarav Shah,Sales,expense,Uber,790,INR,,yes,Cab to client site visit,pending,,
+APR-1015,2026-11-10T07:41,Meera Pillai,Engineering,travel,IRCTC,30650,INR,,yes,Train tickets for vendor audit,approved,2026-11-11T18:47,manager
+APR-1016,2026-11-10T11:15,Rohan Gupta,Sales,expense,Olive Bistro,5450,INR,,yes,Client dinner with Skyline Developers team,pending,,
+APR-1017,2026-11-10T12:41,Isha Verma,Marketing,expense,Chai Point,2320,INR,,yes,Snacks for sprint review,approved,2026-11-13T04:08,manager
+APR-1018,2026-11-10T13:47,Tanvi Desai,Finance,travel,MakeMyTrip,7780,INR,,yes,Flight to Bengaluru for client workshop,approved,2026-11-13T04:24,manager
+APR-1019,2026-11-10T15:54,Rohan Gupta,Sales,expense,Zomato,4810,INR,,yes,Working lunch with client team,rejected,2026-11-12T20:35,manager
+APR-1020,2026-11-10T20:48,Tanvi Desai,Finance,purchase,Atlassian,36110,INR,,yes,Jira seats annual renewal,approved,2026-11-13T15:47,manager
+APR-1021,2026-11-10T22:01,Kabir Malhotra,Marketing,travel,Taj Hotels,12760,INR,,yes,Hotel stay for site inspection,rejected,2026-11-12T02:25,manager
+APR-1022,2026-11-11T01:34,Tanvi Desai,Finance,expense,Uber,940,INR,,yes,Cab to client site visit,pending,,
+APR-1023,2026-11-11T01:42,Arjun Reddy,Engineering,expense,Staples,880,INR,,yes,Printer paper and stationery,approved,2026-11-11T09:42,manager
+APR-1024,2026-11-11T06:18,Kabir Malhotra,Marketing,discount,Skyline Developers,221630,INR,10,n/a,Bulk booking discount,pending,,
+APR-1025,2026-11-11T06:19,Dev Patel,Operations,purchase,Amazon Business,35980,INR,,yes,Ergonomic chairs for office,pending,,
+APR-1026,2026-11-11T11:15,Kavya Joshi,Operations,travel,Taj Hotels,18200,INR,,no,Hotel stay for vendor audit in Pune,pending,,
+APR-1027,2026-11-12T00:32,Tanvi Desai,Finance,expense,Chai Point,750,INR,,yes,Snacks for sprint review,pending,,
+APR-1028,2026-11-12T06:43,Aarav Shah,Sales,discount,Metro Homes,145010,INR,7,n/a,Loyalty discount on renewal,pending,,
+APR-1029,2026-11-12T11:15,Rohan Gupta,Sales,expense,Olive Bistro,5450,INR,,yes,Client dinner with Skyline Developers team,pending,,
+APR-1030,2026-11-12T22:03,Tanvi Desai,Finance,expense,Uber,560,INR,,yes,Cab to client site visit,approved,2026-11-13T11:20,manager
+APR-1031,2026-11-13T07:37,Dev Patel,Operations,purchase,Dell India,50770,INR,,yes,Laptop replacement for new joiner,approved,2026-11-14T10:36,manager
+APR-1032,2026-11-13T10:15,Arjun Reddy,Engineering,purchase,Dell India,24500,INR,,yes,27-inch monitors (batch 1),pending,,
+APR-1033,2026-11-13T11:15,Arjun Reddy,Engineering,purchase,Dell India,24500,INR,,yes,27-inch monitors (batch 2),pending,,
+APR-1034,2026-11-13T11:15,Dev Patel,Operations,expense,Barbeque Nation,6200,INR,,yes,Family dinner during Pune trip,pending,,
+APR-1035,2026-11-13T11:50,Tanvi Desai,Finance,travel,MakeMyTrip,19330,INR,,yes,Flight to Bengaluru for client workshop,pending,,
+APR-1036,2026-11-13T12:15,Arjun Reddy,Engineering,purchase,Dell India,24500,INR,,yes,Docking stations,pending,,
+APR-1037,2026-11-13T22:12,Tanvi Desai,Finance,travel,MakeMyTrip,44890,INR,,yes,Flight to Bengaluru for client workshop,pending,,
+APR-1038,2026-11-14T00:59,Rohan Gupta,Sales,expense,Staples,1700,INR,,yes,Printer paper and stationery,pending,,
+APR-1039,2026-11-14T02:13,Isha Verma,Marketing,purchase,AWS,104480,INR,,yes,Reserved instances for staging,pending,,
+APR-1040,2026-11-14T05:08,Tanvi Desai,Finance,expense,Staples,5610,INR,,yes,Printer paper and stationery,pending,,
+APR-1041,2026-11-14T11:15,Kabir Malhotra,Marketing,expense,Chai Point,5600,INR,,no,Team offsite snacks,pending,,
+APR-1042,2026-11-14T11:15,Neha Kapoor,Sales,expense,Netflix,649,INR,,yes,Netflix subscription for home,pending,,
+APR-1043,2026-11-14T11:15,Aarav Shah,Sales,discount,Skyline Developers,210000,INR,18,n/a,Year-end discount on bulk booking of 40 units,pending,,
+APR-1044,2026-11-14T13:09,Tanvi Desai,Finance,expense,Chai Point,480,INR,,yes,Snacks for sprint review,pending,,
+APR-1045,2026-11-14T15:37,Kabir Malhotra,Marketing,purchase,Amazon Business,77000,INR,,yes,Ergonomic chairs for office,pending,,
+APR-1046,2026-11-14T19:11,Neha Kapoor,Sales,travel,IRCTC,44840,INR,,yes,Train tickets for vendor audit,pending,,
+APR-1047,2026-11-14T21:43,Aarav Shah,Sales,discount,Skyline Developers,215070,INR,8,n/a,Bulk booking discount,pending,,
+APR-1048,2026-11-15T11:15,Sneha Iyer,Engineering,purchase,TechSource Traders,320000,INR,,yes,misc tools,pending,,

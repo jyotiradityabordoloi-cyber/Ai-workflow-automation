@@ -1,0 +1,44 @@
+{
+  "routing": {
+    "run_id": "20261117-001528-tickets-groq",
+    "model": "openai/gpt-oss-120b",
+    "test_size": 24,
+    "dev_size": 24,
+    "category": {
+      "ai": 95.8,
+      "baseline": 25.0
+    },
+    "priority": {
+      "ai": 87.5,
+      "baseline": 58.3
+    },
+    "sentiment": {
+      "ai": 75.0,
+      "baseline": 66.7
+    },
+    "manual_caught": "2/2",
+    "misses": [
+      {
+        "ticket": "N-2003",
+        "field": "category",
+        "expected": "developer",
+        "got": "product"
+      }
+    ],
+    "impact": {
+      "batch": 24,
+      "manual_min": 314.0,
+      "automated_min": 84.0,
+      "machine_s": 125,
+      "saved_pct": 73.2
+    }
+  },
+  "approvals": {
+    "requests": 48,
+    "machine_s": 33,
+    "manual_min": 296.5,
+    "human_min": 29.0,
+    "saved_pct": 90.2,
+    "local_s": 506
+  }
+}
