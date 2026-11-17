@@ -138,6 +138,13 @@
   }
   @media (max-width: 359px) { .close--type .btn--xl { white-space: normal; height: auto; min-height: 48px; padding-block: var(--s-3); text-align: left; } }
   @media (max-width: 639px) { .sf-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+  /* a tablet or narrow window stacks the hero (words, then the ticket card); on a short screen that is taller
+     than one screen, so the hero grows instead of letting the card spill under the next section (as the kit does below 640) */
+  @media (min-width: 640px) and (max-width: 1023px) {
+    main > .hero { height: auto; min-height: 100vh; min-height: 100svh; }
+    main > .hero:has(> .wrap) { display: grid; grid-template-columns: minmax(0, 1fr); grid-template-rows: 1fr; grid-auto-rows: auto; }
+    main > .hero > .wrap { height: auto; }
+  }
 
   .sf-code { white-space: pre-wrap; }
   .sf-eval { display: grid; grid-template-columns: minmax(0, 1fr) 72px 96px; align-items: center; gap: 12px; padding: 10px 0; border-bottom: 1px solid var(--u-line); }
