@@ -5,7 +5,7 @@ import Link from "next/link";
 import { Avatar, PageHeader } from "@/components/shell";
 import { Card, CardHeader, FlagBadge, PriorityBadge, Stat } from "@/components/ui";
 import { useWorkspace } from "@/lib/api";
-import { CATEGORIES, CATEGORY_LABEL, PRIORITIES, timeAgo, subjectOf } from "@/lib/format";
+import { CATEGORIES, CATEGORY_LABEL, customerLabel, PRIORITIES, timeAgo, subjectOf } from "@/lib/format";
 import type { Ticket } from "@/lib/types";
 
 const open = (t: Ticket) => t.status !== "resolved";
@@ -68,7 +68,7 @@ export default function Overview() {
                     {pri(t) ? <PriorityBadge p={pri(t)!} /> : <span className="w-[26px] text-center text-[11px] text-faint">—</span>}
                     <div className="min-w-0 flex-1">
                       <p className="truncate text-[13px] font-medium">{subjectOf(t)}</p>
-                      <p className="truncate text-xs text-muted">{t.customer.company} · {t.id} · {timeAgo(t.createdAt)}</p>
+                      <p className="truncate text-xs text-muted">{customerLabel(t.customer)} · {t.id} · {timeAgo(t.createdAt)}</p>
                     </div>
                     <div className="hidden gap-1 sm:flex">
                       {t.status === "new" && <span className="text-xs text-muted">Not analysed</span>}
@@ -98,7 +98,7 @@ export default function Overview() {
                 </div>
               ))}
             </dl>
-            <p className="px-4 py-3 text-xs text-faint">Activity counts, not accuracy. Accuracy is measured on the AI evaluation page once evaluation runs exist.</p>
+            <p className="px-4 py-3 text-xs text-faint">Activity counts, not accuracy. Measured accuracy against labelled tickets is on the AI evaluation page.</p>
           </Card>
         </div>
 

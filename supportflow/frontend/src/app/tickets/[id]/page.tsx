@@ -340,10 +340,12 @@ function MemoryCard({ mem, error }: { mem: TicketMemory | null; error: string | 
         {mem && mem.earlierTickets.length === 0 && <p className="text-muted">No earlier tickets from this customer.</p>}
         {mem?.earlierTickets.map((p) => (
           <div key={p.id} className="rounded-lg border border-line">
-            <Link href={`/tickets/${p.id}`} className="flex items-center gap-2 rounded-t-lg px-3 py-2 hover:bg-hover">
-              <span className="font-mono text-xs text-muted">{p.id}</span>
-              <span className="min-w-0 flex-1 truncate">{p.subject || "(no subject)"}</span>
-              <span className="shrink-0 text-xs text-muted">{STATUS_LABEL[p.status]}</span>
+            <Link href={`/tickets/${p.id}`} className="block rounded-t-lg px-3 py-2 transition-colors hover:bg-hover">
+              <span className="flex items-center justify-between gap-2 text-xs">
+                <span className="font-mono text-muted">{p.id}</span>
+                <span className="text-muted">{STATUS_LABEL[p.status]}</span>
+              </span>
+              <span className="mt-0.5 line-clamp-2 font-medium">{p.subject || "(no subject)"}</span>
             </Link>
             <ol className="space-y-1 border-t border-line px-3 py-2">
               {p.episodes.filter((e) => e.kind !== "opened").map((e, i) => (
@@ -449,7 +451,7 @@ function TicketView({ t }: { t: Ticket }) {
         title={<span className="flex items-center gap-2"><Link href="/inbox" className="text-muted hover:text-ink" aria-label="Back to inbox"><ArrowLeft className="size-4" /></Link>{subjectOf(t)}</span>}
         subtitle={<>{t.id} · {STATUS_LABEL[t.status]} · {t.channel.replace("_", " ")} · {timeAgo(t.createdAt)}{t.assignee && ` · assigned to ${t.assignee}`}</>}
       />
-      <div className="grid gap-4 p-4 md:p-6 xl:grid-cols-[minmax(0,1fr)_340px]">
+      <div className="grid gap-4 p-4 md:p-6 xl:grid-cols-[minmax(0,1fr)_360px] 2xl:grid-cols-[minmax(0,1fr)_400px]">
         <div className="min-w-0 space-y-4">
           <Card>
             <div className="flex items-center gap-3 border-b border-line px-4 py-3">

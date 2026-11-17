@@ -34,4 +34,10 @@ export function dateTime(iso: string): string {
 
 export const subjectOf = (t: { subject: string }) => t.subject.trim() || "(no subject)";
 
+/** Who a ticket is from, for one-line lists: the company, else the person, never an empty string. */
+export const customerLabel = (c: { company?: string; name?: string }) => {
+  const real = (s?: string) => (s && !/^[\s\-–—]*$/.test(s) ? s.trim() : ""); // a bare dash means "not given"
+  return real(c.company) || real(c.name) || "Unknown customer";
+};
+
 export const initials =(name: string) => name.split(/\s+/).map((p) => p[0]).slice(0, 2).join("").toUpperCase();
