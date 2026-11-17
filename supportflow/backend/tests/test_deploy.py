@@ -60,6 +60,19 @@ def test_a_different_client_has_its_own_budget(make_client, monkeypatch):
         assert c.post("/api/tickets", json=body, headers={"X-Forwarded-For": "198.51.100.7"}).status_code == 201
 
 
+def test_cors_origins_accept_what_people_type_into_a_dashboard(monkeypatch):
+    want = ["https://supportflow.vercel.app"]
+    for raw in ('["https://supportflow.vercel.app"]', "https://supportflow.vercel.app", "https://supportflow.vercel.app/",
+                " https://supportflow.vercel.app ", "[“https://supportflow.vercel.app”]", "[https://supportflow.vercel.app]",
+                "'https://supportflow.vercel.app'"):
+        monkeypatch.setenv("CORS_ORIGINS", raw)
+        assert Settings().cors_origins == want, raw
+    monkeypatch.setenv("CORS_ORIGINS", "https://a.vercel.app, https://b.vercel.app/")
+    assert Settings().cors_origins == ["https://a.vercel.app", "https://b.vercel.app"]
+    monkeypatch.setenv("CORS_ORIGINS", '["https://a.vercel.app", "http://localhost:3000"]')
+    assert Settings().cors_origins == ["https://a.vercel.app", "http://localhost:3000"]
+
+
 def test_hosted_postgres_urls_use_psycopg():
     for url in ("postgres://u:p@ep-x.neon.tech/db?sslmode=require", "postgresql://u:p@ep-x.neon.tech/db?sslmode=require"):
         assert Settings(database_url=url).database_url == "postgresql+psycopg://u:p@ep-x.neon.tech/db?sslmode=require"

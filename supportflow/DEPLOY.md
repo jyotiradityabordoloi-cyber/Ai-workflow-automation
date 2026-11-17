@@ -64,7 +64,7 @@ Never put real customer data in the public demo.
 
 ## 6. Connect the two
 
-In Render, open the service, then **Environment**. Set `CORS_ORIGINS` to `["https://<project>.vercel.app"]` and save; Render redeploys.
+In Render, open the service, then **Environment**. Set `CORS_ORIGINS` to your Vercel address (`https://<project>.vercel.app`; several can be separated by commas) and save; Render redeploys.
 Open the Vercel address: the dashboard wakes the API and loads the demo.
 
 ## 7. Optional: the landing page

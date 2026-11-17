@@ -1,9 +1,10 @@
+import json
 from functools import lru_cache
 from pathlib import Path
-from typing import Literal
+from typing import Annotated, Literal
 
 from pydantic import field_validator
-from pydantic_settings import BaseSettings, SettingsConfigDict
+from pydantic_settings import BaseSettings, NoDecode, SettingsConfigDict
 
 BACKEND_DIR = Path(__file__).resolve().parents[1]
 REPO_ROOT = BACKEND_DIR.parents[1]
@@ -44,7 +45,8 @@ class Settings(BaseSettings):
     knowledge_min_similarity: float = 0.3  # below this a "similar resolved ticket" is noise
     correction_min_similarity: float = 0.6 # only near-duplicates of a corrected ticket steer the classifier
 
-    cors_origins: list[str] = ["http://localhost:3000"]
+    # Accepts a JSON list (["https://a.vercel.app"]) or plain addresses separated by commas; see _origins below.
+    cors_origins: Annotated[list[str], NoDecode] = ["http://localhost:3000"]
     ticket_url_base: str = "http://localhost:3000/tickets"
     log_level: str = "INFO"
 
@@ -52,6 +54,24 @@ class Settings(BaseSettings):
     # call the LLM (create with analyze, re-analyze); "writes" counts every POST.
     rate_limit_ai_per_10min: int = 0
     rate_limit_writes_per_10min: int = 0
+
+    @field_validator("cors_origins", mode="before")
+    @classmethod
+    def _origins(cls, v: object) -> object:
+        """Forgiving input from a hosting dashboard: a JSON list, or comma-separated addresses; smart quotes, spaces
+        and a trailing slash are tolerated. A browser's Origin never ends in "/", so one there would block every request."""
+        if isinstance(v, str):
+            s = v.strip().replace("“", '"').replace("”", '"').replace("‘", "'").replace("’", "'")
+            if s.startswith("["):
+                try:
+                    v = json.loads(s)
+                except json.JSONDecodeError:
+                    v = s.strip("[]").split(",")
+            else:
+                v = s.split(",")
+        if isinstance(v, list):
+            return [o.strip().strip("\"'").rstrip("/") for o in v if isinstance(o, str) and o.strip().strip("\"'")]
+        return v
 
     @field_validator("database_url")
     @classmethod
