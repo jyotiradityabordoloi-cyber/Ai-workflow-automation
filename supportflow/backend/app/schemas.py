@@ -64,6 +64,20 @@ class AnalysisOut(ApiModel):
     analyzed_at: datetime
     latency_ms: int
     error: str | None = None
+    memory: "MemoryUsedOut | None" = None
+
+
+class MemoryRef(ApiModel):
+    id: str
+    similarity: float
+
+
+class MemoryUsedOut(ApiModel):
+    """What the recall step put in front of the classifier for this analysis."""
+
+    history: list[str] = []          # earlier ticket ids of the same customer (episodic)
+    corrections: list[MemoryRef] = []  # near-identical tickets an agent re-classified (semantic)
+    knowledge: list[MemoryRef] = []    # similar resolved problems (semantic; recorded, not sent to the classifier)
 
 
 class DecisionOut(ApiModel):
@@ -91,6 +105,13 @@ class TicketOut(ApiModel):
     analysis: AnalysisOut | None
     decision: DecisionOut
     manager_approval: ManagerApprovalOut | None = None
+    resolution: "ResolutionOut | None" = None
+
+
+class ResolutionOut(ApiModel):
+    text: str
+    by: str
+    at: datetime
 
 
 class TicketCreate(ApiModel):
@@ -108,6 +129,61 @@ class DecisionIn(ApiModel):
     priority: Priority | None = None
 
 
+class ResolveIn(ApiModel):
+    resolution: Annotated[str, Field(min_length=10, max_length=2000, description="What fixed it; becomes searchable knowledge")]
+
+
+# ---------------------------------------------------------------- memory
+class EpisodeOut(ApiModel):
+    kind: str
+    summary: str
+    occurred_at: datetime
+
+
+class PastTicketOut(ApiModel):
+    id: str
+    subject: str
+    status: str
+    created_at: datetime
+    episodes: list[EpisodeOut]
+
+
+class KnowledgeOut(ApiModel):
+    id: str
+    subject: str
+    body: str
+    resolution: str
+    category: str
+    source: Literal["kb", "ticket"]
+    resolved_at: str | None = None
+    similarity: float | None = None
+
+
+class CorrectionOut(ApiModel):
+    ticket_id: str
+    similarity: float
+    excerpt: str
+    ai: dict[str, str]
+    agent: dict[str, str]
+
+
+class TicketMemoryOut(ApiModel):
+    """Everything memory holds that is relevant to one ticket."""
+
+    customer_key: str
+    earlier_tickets: list[PastTicketOut]   # episodic: this customer's earlier tickets and what happened
+    knowledge: list[KnowledgeOut]          # semantic: top-3 similar resolved problems
+    corrections: list[CorrectionOut]       # semantic: agent corrections on near-identical tickets
+    used_by_ai: MemoryUsedOut | None       # what the latest analysis actually saw
+
+
+class MemoryStatsOut(ApiModel):
+    embedder: str
+    knowledge: int
+    corrections: int
+    episodes: int
+
+
 class AuditOut(ApiModel):
     id: int
     ticket_id: str
@@ -123,3 +199,7 @@ class HealthOut(ApiModel):
     llm_provider: str
     llm_model: str
     llm_configured: bool
+
+
+AnalysisOut.model_rebuild()
+TicketOut.model_rebuild()

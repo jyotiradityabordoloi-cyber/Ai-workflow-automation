@@ -137,14 +137,20 @@ class FakeLLM:
         self.responses = list(responses or [])
         self.fail = fail
         self.calls = 0
+        self.prompts: list[str] = []  # every user message received, so tests can check what memory was shown
 
     def complete_json(self, system: str, user: str, schema: dict[str, Any], schema_name: str) -> LLMResult:
         self.calls += 1
+        self.prompts.append(user)
         if self.fail:
             raise LLMError("fake failure")
         if self.responses:
             return LLMResult(self.responses.pop(0), self.model)
-        text = user.lower()
+        try:  # keyword rules read the current message only, never the recalled memory
+            payload = json.loads(user.split("\n\nYour previous reply")[0])
+            text = f"{payload.get('subject', '')} {payload.get('message', '')}".lower()
+        except (json.JSONDecodeError, AttributeError):
+            text = user.lower()
         rules = [("billing", r"charg|invoice|bill|refund|payment|price|seat"), ("bug", r"error|crash|fail|blank|broken|delay|wrong"),
                  ("feature_request", r"would (love|be great)|any plan|dark mode|endpoint"), ("account", r"password|owner|access|delete|admin|login")]
         cat = next((c for c, rx in rules if re.search(rx, text)), "other")

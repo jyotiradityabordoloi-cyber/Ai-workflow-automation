@@ -1,4 +1,8 @@
+import uuid
+
+import chromadb
 import pytest
+from chromadb.config import Settings as ChromaSettings
 from fastapi.testclient import TestClient
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
@@ -8,6 +12,8 @@ from app import models  # noqa: F401
 from app.ai.llm import FakeLLM
 from app.db import Base, get_session
 from app.main import create_app
+from app.memory.embeddings import HashEmbedder
+from app.memory.semantic import SemanticMemory, seed_knowledge
 
 
 @pytest.fixture()
@@ -17,12 +23,25 @@ def session_factory():
     return sessionmaker(bind=engine, expire_on_commit=False)
 
 
-@pytest.fixture()
-def make_client(session_factory):
-    """Build a TestClient around a given fake LLM. No network, no Postgres needed."""
+@pytest.fixture(scope="session")
+def chroma_client():
+    return chromadb.EphemeralClient(settings=ChromaSettings(anonymized_telemetry=False))
 
-    def _make(llm=None):
-        app = create_app(llm=llm or FakeLLM())
+
+@pytest.fixture()
+def memory(chroma_client):
+    """Semantic memory in RAM with the offline hash embedder; a fresh namespace per test keeps tests independent."""
+    m = SemanticMemory(chroma_client, HashEmbedder(), namespace=f"t{uuid.uuid4().hex[:10]}_")
+    seed_knowledge(m)
+    return m
+
+
+@pytest.fixture()
+def make_client(session_factory, memory):
+    """Build a TestClient around a given fake LLM. No network, no Postgres, no embedding model needed."""
+
+    def _make(llm=None, mem=None):
+        app = create_app(llm=llm or FakeLLM(), memory=mem or memory)
 
         def _session():
             with session_factory() as s:
@@ -44,8 +63,11 @@ AGENT = {"X-Agent-Name": "Alex Rivera", "X-Agent-Role": "agent"}
 MANAGER = {"X-Agent-Name": "Jordan Lee", "X-Agent-Role": "manager"}
 
 
-def new_ticket(client, body: str, subject: str = "Help", analyze: bool = True, headers=AGENT):
+MAYA = {"name": "Maya Chen", "company": "Northwind", "plan": "Pro"}
+
+
+def new_ticket(client, body: str, subject: str = "Help", analyze: bool = True, headers=AGENT, customer=MAYA):
     r = client.post(f"/api/tickets?analyze={str(analyze).lower()}", headers=headers,
-                    json={"subject": subject, "body": body, "customer": {"name": "Maya Chen", "company": "Northwind", "plan": "Pro"}})
+                    json={"subject": subject, "body": body, "customer": customer})
     assert r.status_code == 201, r.text
     return r.json()

@@ -1,0 +1,149 @@
+[
+  {
+    "id": "KB-101",
+    "category": "billing",
+    "subject": "Double charge on card",
+    "body": "We were charged twice for the monthly subscription.",
+    "resolution": "Confirmed a duplicate charge caused by a payment-gateway retry. Refunded the second charge (5-7 business days) and sent the refund receipt."
+  },
+  {
+    "id": "KB-102",
+    "category": "billing",
+    "subject": "Invoice needs VAT ID",
+    "body": "Our invoice is missing our VAT number.",
+    "resolution": "Added the VAT ID under Settings > Billing > Tax details, regenerated the invoice and emailed the PDF. Future invoices include it automatically."
+  },
+  {
+    "id": "KB-103",
+    "category": "billing",
+    "subject": "Price increased without notice",
+    "body": "Our plan price went up this month.",
+    "resolution": "Explained the legacy-plan migration announced by email 60 days earlier and applied a one-month courtesy credit for the difference."
+  },
+  {
+    "id": "KB-104",
+    "category": "billing",
+    "subject": "Bought too many seats",
+    "body": "We purchased seats we don't need.",
+    "resolution": "Removed the unused seats; the unused portion was credited to the account balance (prorated) rather than refunded to card."
+  },
+  {
+    "id": "KB-105",
+    "category": "billing",
+    "subject": "Seat count not updated after upgrade",
+    "body": "Upgraded plan but seats still show the old number.",
+    "resolution": "Plan changes sync within 5 minutes; a stuck sync was re-triggered from the billing admin and invites started working."
+  },
+  {
+    "id": "KB-106",
+    "category": "billing",
+    "subject": "Pay by bank transfer",
+    "body": "Can we pay by bank transfer instead of card?",
+    "resolution": "Bank transfer and invoicing are available on annual Business plans; card and PayPal on all plans."
+  },
+  {
+    "id": "KB-201",
+    "category": "account",
+    "subject": "Password reset email not received",
+    "body": "Reset emails never arrive.",
+    "resolution": "The customer's mail server rejected our sender. Asked them to allowlist our mail domain, then sent a manual reset link valid for 30 minutes."
+  },
+  {
+    "id": "KB-202",
+    "category": "account",
+    "subject": "Add read-only teammate",
+    "body": "How to give someone view-only access?",
+    "resolution": "Settings > Team > Invite, choose the 'Viewer' role. Viewers can open dashboards and reports but cannot edit or export."
+  },
+  {
+    "id": "KB-203",
+    "category": "account",
+    "subject": "Suspicious API keys and logins",
+    "body": "API keys we did not create appeared on our account.",
+    "resolution": "Revoked all API keys, forced logout of all sessions, required a password reset and enforced 2FA. Security reviewed audit logs within 24h."
+  },
+  {
+    "id": "KB-204",
+    "category": "account",
+    "subject": "Request for DPA and sub-processors",
+    "body": "Legal needs our data processing agreement.",
+    "resolution": "Shared the signed DPA template and the sub-processor list from the trust center; countersigned within 3 business days."
+  },
+  {
+    "id": "KB-301",
+    "category": "bug",
+    "subject": "Dashboard returning 500 errors",
+    "body": "All dashboards show server error 500.",
+    "resolution": "Linked to the incident on the status page (database failover). Resolved in 47 minutes; the customer received the incident report."
+  },
+  {
+    "id": "KB-302",
+    "category": "bug",
+    "subject": "CSV import date error on large file",
+    "body": "Import fails with invalid date format on big files.",
+    "resolution": "Chunked imports lost the header row after 1,000 rows. Fixed in 4.12; workaround was importing files under 1,000 rows."
+  },
+  {
+    "id": "KB-303",
+    "category": "bug",
+    "subject": "Webhooks arriving late",
+    "body": "Webhook events delayed by many minutes.",
+    "resolution": "Queue backlog after a deploy; workers were scaled and delays returned to under 5 seconds. Failed deliveries replayed automatically."
+  },
+  {
+    "id": "KB-304",
+    "category": "bug",
+    "subject": "Scheduled report PDFs are blank",
+    "body": "Scheduled emails contain empty PDFs.",
+    "resolution": "PDF renderer regression; engineering rolled back the renderer and re-sent the affected reports."
+  },
+  {
+    "id": "KB-305",
+    "category": "bug",
+    "subject": "Search fails with special characters",
+    "body": "Searching for names with an apostrophe returns nothing.",
+    "resolution": "The query parser didn't escape apostrophes; fixed in 4.9. Workaround: search for the part after the apostrophe."
+  },
+  {
+    "id": "KB-306",
+    "category": "bug",
+    "subject": "Mobile app crash after update",
+    "body": "Android app closes on launch after update.",
+    "resolution": "Crash in the push-notification SDK on some Android versions. Hotfix 3.8.1 shipped the same day via the Play Store."
+  },
+  {
+    "id": "KB-307",
+    "category": "bug",
+    "subject": "Slack connect popup blank",
+    "body": "OAuth popup for Slack is empty.",
+    "resolution": "Third-party cookie blocking broke the OAuth popup; switched to a redirect flow in 4.11. Workaround: allow third-party cookies for our domain."
+  },
+  {
+    "id": "KB-401",
+    "category": "feature_request",
+    "subject": "Okta SSO support",
+    "body": "Do you support SAML SSO with Okta?",
+    "resolution": "SAML SSO (Okta, Azure AD, Google) is available on Business and above. Shared the setup guide."
+  },
+  {
+    "id": "KB-402",
+    "category": "feature_request",
+    "subject": "Dark mode request",
+    "body": "Please add a dark theme.",
+    "resolution": "Logged the vote on the public roadmap item 'Dark mode' (planned for Q1). Customer subscribed to updates."
+  },
+  {
+    "id": "KB-403",
+    "category": "feature_request",
+    "subject": "Schedule exports to cloud storage",
+    "body": "Can exports be scheduled to Google Drive?",
+    "resolution": "Not native yet; logged on the roadmap. Workaround: scheduled export email plus the Zapier integration into Google Drive."
+  },
+  {
+    "id": "KB-501",
+    "category": "other",
+    "subject": "Agency partner program",
+    "body": "Do you work with agencies or resellers?",
+    "resolution": "Shared the partner programme page (20% recurring commission) and connected them with the partnerships team."
+  }
+]

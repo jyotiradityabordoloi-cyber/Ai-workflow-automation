@@ -1,7 +1,7 @@
 "use client";
 
 import clsx from "clsx";
-import { ArrowLeft, Bot, Check, FileSearch, Pencil, RefreshCw, ShieldAlert, ShieldCheck, Siren, Sparkles, User, X } from "lucide-react";
+import { ArrowLeft, Bot, Check, CircleCheck, FileSearch, History, Pencil, RefreshCw, ShieldAlert, ShieldCheck, Siren, Sparkles, User, X } from "lucide-react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import { useEffect, useState } from "react";
@@ -12,10 +12,38 @@ import {
 import { api, useWorkspace } from "@/lib/api";
 import { CATEGORIES, CATEGORY_LABEL, dateTime, PRIORITIES, STATUS_LABEL, timeAgo, subjectOf } from "@/lib/format";
 import { CONFIDENCE_THRESHOLD, hasFlag } from "@/lib/rules";
-import type { Category, Priority, RetrievedDoc, Ticket } from "@/lib/types";
+import type { Category, MemoryUsed, Priority, RetrievedDoc, Ticket, TicketMemory } from "@/lib/types";
 import { useAction } from "@/lib/use-action";
 
 const select = "h-8 rounded-lg border border-line bg-surface px-2 text-[13px]";
+const plural = (n: number, word: string) => `${n} ${word}${n === 1 ? "" : "s"}`;
+
+/** Episodic + semantic memory for the ticket, refetched whenever something that changes it happens. */
+function useTicketMemory(t: Ticket) {
+  const [mem, setMem] = useState<TicketMemory | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const stamp = `${t.id}|${t.analysis?.analyzedAt}|${t.decision.status}|${t.decision.category}|${t.status}`;
+  useEffect(() => {
+    let live = true;
+    setError(null);
+    api.ticketMemory(t.id).then((m) => live && setMem(m)).catch((e: Error) => live && setError(e.message));
+    return () => { live = false; };
+  }, [stamp]); // eslint-disable-line react-hooks/exhaustive-deps -- stamp covers t.id and every input that changes memory
+  return { mem, error };
+}
+
+function MemoryUsedLine({ m }: { m: MemoryUsed }) {
+  const parts = [
+    m.history.length > 0 && plural(m.history.length, "earlier ticket") + " from this customer",
+    m.corrections.length > 0 && plural(m.corrections.length, "agent correction") + ` (${m.corrections.map((c) => c.id).join(", ")})`,
+  ].filter(Boolean);
+  return (
+    <p className="flex items-start gap-1.5 text-xs text-muted">
+      <History className="mt-px size-3.5 shrink-0" />
+      <span>{parts.length ? <>Context the AI saw: {parts.join(" · ")}.</> : "No memory used: no earlier tickets from this customer and no matching agent corrections."}</span>
+    </p>
+  );
+}
 
 function ClassifyForm({ ticket, onDone, submitLabel }: { ticket: Ticket; onDone?: () => void; submitLabel: string }) {
   // On manual-review tickets the AI's guess is hidden, so the form must not pre-fill it either.
@@ -89,6 +117,7 @@ function AnalysisCard({ t }: { t: Ticket }) {
               <p className="text-xs text-muted">Summary</p>
               <p className="mt-0.5 text-[13px] leading-5">{a.summary}</p>
             </div>
+            {a.memory && <MemoryUsedLine m={a.memory} />}
             <div className="flex flex-wrap items-center gap-2 border-t border-line pt-3">
               {t.decision.status === "pending" && !overriding && (
                 <>
@@ -130,21 +159,14 @@ function Field({ label, children }: { label: string; children: React.ReactNode }
   return <div><p className="mb-1 text-xs text-muted">{label}</p>{children}</div>;
 }
 
-function ResponseCard({ t }: { t: Ticket }) {
+function ResponseCard({ t, docs }: { t: Ticket; docs: RetrievedDoc[] | null }) {
   const ws = useWorkspace();
-  const [docs, setDocs] = useState<RetrievedDoc[] | null>(null);
   const [open, setOpen] = useState<string | null>(null);
   const [rejecting, setRejecting] = useState(false);
   const [reason, setReason] = useState("");
   const gen = useAction(api.generateDraft, "Draft ready for review");
   const approve = useAction(api.approveDraft, "Response approved");
   const reject = useAction(api.rejectDraft, "Draft rejected");
-
-  useEffect(() => {
-    let live = true;
-    api.retrieve(t.id).then((r) => live && setDocs(r));
-    return () => { live = false; };
-  }, [t.id]);
 
   const drafts = ws.drafts.filter((d) => d.ticketId === t.id);
   const active = [...drafts].reverse().find((d) => d.status === "generated" || d.status === "edited");
@@ -168,6 +190,7 @@ function ResponseCard({ t }: { t: Ticket }) {
                   <button className="flex w-full items-center gap-3 px-3 py-2 text-left" onClick={() => setOpen(open === r.doc.id ? null : r.doc.id)} aria-expanded={open === r.doc.id}>
                     <span className="font-mono text-xs text-muted">{r.doc.id}</span>
                     <span className="min-w-0 flex-1 truncate text-[13px]">{r.doc.subject}</span>
+                    {r.doc.source === "ticket" && <Badge tone="accent">Learned</Badge>}
                     <span className="flex w-28 items-center gap-2">
                       <span className="h-1.5 flex-1 rounded-full bg-subtle"><span className="block h-full rounded-full bg-accent" style={{ width: `${r.similarity * 100}%` }} /></span>
                       <span className="font-mono text-[11px] tabular-nums text-muted">{r.similarity.toFixed(2)}</span>
@@ -306,6 +329,83 @@ function EscalationCard({ t }: { t: Ticket }) {
   );
 }
 
+function MemoryCard({ mem, error }: { mem: TicketMemory | null; error: string | null }) {
+  return (
+    <Card>
+      <CardHeader title={<span className="flex items-center gap-1.5"><History className="size-3.5" /> Customer history</span>}
+        hint="What happened on this customer's earlier tickets" />
+      <div className="space-y-3 p-4 text-[13px]">
+        <ErrorText>{error}</ErrorText>
+        {!mem && !error && <p className="text-muted">Recalling…</p>}
+        {mem && mem.earlierTickets.length === 0 && <p className="text-muted">No earlier tickets from this customer.</p>}
+        {mem?.earlierTickets.map((p) => (
+          <div key={p.id} className="rounded-lg border border-line">
+            <Link href={`/tickets/${p.id}`} className="flex items-center gap-2 rounded-t-lg px-3 py-2 hover:bg-hover">
+              <span className="font-mono text-xs text-muted">{p.id}</span>
+              <span className="min-w-0 flex-1 truncate">{p.subject || "(no subject)"}</span>
+              <span className="shrink-0 text-xs text-muted">{STATUS_LABEL[p.status]}</span>
+            </Link>
+            <ol className="space-y-1 border-t border-line px-3 py-2">
+              {p.episodes.filter((e) => e.kind !== "opened").map((e, i) => (
+                <li key={i} className="flex gap-2 text-xs">
+                  <span className="min-w-0 flex-1 text-muted">{e.summary}</span>
+                  <span className="shrink-0 text-faint">{timeAgo(e.occurredAt)}</span>
+                </li>
+              ))}
+              <li className="text-xs text-faint">Opened {timeAgo(p.createdAt)}</li>
+            </ol>
+          </div>
+        ))}
+        {mem && mem.corrections.length > 0 && (
+          <div className="space-y-1.5 border-t border-line pt-3">
+            <p className="text-xs text-muted">Agent corrections on similar tickets</p>
+            {mem.corrections.map((c) => (
+              <p key={c.ticketId} className="text-xs">
+                <Link href={`/tickets/${c.ticketId}`} className="font-mono text-muted hover:underline">{c.ticketId}</Link>{" "}
+                AI said {CATEGORY_LABEL[c.ai.category]} · {c.ai.priority}, agent set <b>{CATEGORY_LABEL[c.agent.category]} · {c.agent.priority}</b>
+                <span className="font-mono text-faint"> ({c.similarity.toFixed(2)})</span>
+              </p>
+            ))}
+          </div>
+        )}
+      </div>
+    </Card>
+  );
+}
+
+function ResolveCard({ t }: { t: Ticket }) {
+  const [text, setText] = useState("");
+  const resolve = useAction(api.resolveTicket, "Resolved and saved to knowledge");
+  const blocked = t.decision.status === "pending" ? "Accept or set the classification first."
+    : hasFlag(t.analysis?.flags, "manager_review") && !t.managerApproval ? "A manager must approve handling first." : null;
+  return (
+    <Card>
+      <CardHeader title={<span className="flex items-center gap-1.5"><CircleCheck className="size-3.5" /> Resolution</span>}
+        hint="The fix becomes knowledge for similar tickets" />
+      <div className="space-y-2 p-4 text-[13px]">
+        {t.resolution ? (
+          <>
+            <p className="flex items-center gap-1.5 text-ok"><ShieldCheck className="size-4" /> Resolved by {t.resolution.by} · {timeAgo(t.resolution.at)}</p>
+            <p className="whitespace-pre-wrap text-muted">{t.resolution.text}</p>
+            <p className="text-xs text-faint">Saved to knowledge as {t.id}.</p>
+          </>
+        ) : (
+          <form className="space-y-2" onSubmit={(e) => { e.preventDefault(); resolve.run(t.id, text).then((ok) => ok && setText("")); }}>
+            <textarea value={text} onChange={(e) => setText(e.target.value)} rows={3} aria-label="What fixed it"
+              placeholder="What fixed it? e.g. Refunded the duplicate charge; it reaches the card in 5–7 business days."
+              className="w-full rounded-lg border border-line bg-subtle p-2.5 text-[13px] leading-5" />
+            <Button type="submit" variant="primary" disabled={!!blocked || text.trim().length < 10} loading={resolve.loading}>
+              <CircleCheck className="size-3.5" /> Resolve ticket
+            </Button>
+            {blocked && <p className="text-xs text-faint">{blocked}</p>}
+            <ErrorText>{resolve.error}</ErrorText>
+          </form>
+        )}
+      </div>
+    </Card>
+  );
+}
+
 function Timeline({ t }: { t: Ticket }) {
   const ws = useWorkspace();
   const events = ws.audit.filter((e) => e.ticketId === t.id).sort((a, b) => b.at.localeCompare(a.at));
@@ -338,6 +438,11 @@ export default function TicketPage() {
   if (!t) {
     return <EmptyState title="Ticket not found"><Link className="text-accent" href="/inbox">Back to inbox</Link></EmptyState>;
   }
+  return <TicketView t={t} />;
+}
+
+function TicketView({ t }: { t: Ticket }) {
+  const { mem, error } = useTicketMemory(t);
   return (
     <>
       <PageHeader
@@ -358,10 +463,12 @@ export default function TicketPage() {
             <p className="whitespace-pre-wrap px-4 py-4 text-[14px] leading-6">{t.body}</p>
           </Card>
           <AnalysisCard t={t} />
-          <ResponseCard t={t} />
+          <ResponseCard t={t} docs={error ? [] : mem?.knowledge ?? null} />
         </div>
         <div className="space-y-4">
           <SafetyCard t={t} />
+          <MemoryCard mem={mem} error={error} />
+          <ResolveCard t={t} />
           <EscalationCard t={t} />
           <Timeline t={t} />
         </div>

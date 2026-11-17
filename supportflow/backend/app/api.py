@@ -8,7 +8,8 @@ from sqlalchemy.orm import Session
 
 from .config import BACKEND_DIR, get_settings
 from .db import get_session
-from .schemas import AuditOut, DecisionIn, HealthOut, TicketCreate, TicketOut
+from .schemas import (AuditOut, DecisionIn, HealthOut, KnowledgeOut, MemoryStatsOut, ResolveIn, TicketCreate, TicketMemoryOut,
+                      TicketOut)
 from .services import tickets as svc
 
 router = APIRouter(prefix="/api")
@@ -26,6 +27,10 @@ Actor = Annotated[svc.Actor, Depends(get_actor)]
 
 def get_classifier(request: Request):
     return request.app.state.classifier
+
+
+def get_memory(request: Request):
+    return request.app.state.memory
 
 
 @router.get("/health", response_model=HealthOut)
@@ -66,8 +71,8 @@ def analyze(ticket_id: str, db: DB, request: Request) -> TicketOut:
 
 
 @router.post("/tickets/{ticket_id}/decision", response_model=TicketOut)
-def decide(ticket_id: str, body: DecisionIn, db: DB, actor: Actor) -> TicketOut:
-    return svc.to_out(svc.decide_classification(db, ticket_id, body, actor))
+def decide(ticket_id: str, body: DecisionIn, db: DB, actor: Actor, request: Request) -> TicketOut:
+    return svc.to_out(svc.decide_classification(db, ticket_id, body, actor, get_memory(request)))
 
 
 @router.post("/tickets/{ticket_id}/assign-senior", response_model=TicketOut)
@@ -78,6 +83,37 @@ def assign_senior(ticket_id: str, db: DB, actor: Actor) -> TicketOut:
 @router.post("/tickets/{ticket_id}/manager-approval", response_model=TicketOut)
 def manager_approval(ticket_id: str, db: DB, actor: Actor) -> TicketOut:
     return svc.to_out(svc.record_manager_approval(db, ticket_id, actor))
+
+
+@router.post("/tickets/{ticket_id}/resolve", response_model=TicketOut)
+def resolve(ticket_id: str, body: ResolveIn, db: DB, actor: Actor, request: Request) -> TicketOut:
+    return svc.to_out(svc.resolve_ticket(db, ticket_id, body, actor, get_memory(request)))
+
+
+@router.get("/tickets/{ticket_id}/memory", response_model=TicketMemoryOut)
+def ticket_memory(ticket_id: str, db: DB, request: Request) -> TicketMemoryOut:
+    """Episodic (this customer's earlier tickets) and semantic (similar fixes, agent corrections) memory for one ticket."""
+    return svc.ticket_memory(db, ticket_id, get_memory(request))
+
+
+@router.get("/memory/stats", response_model=MemoryStatsOut)
+def memory_stats(db: DB, request: Request) -> MemoryStatsOut:
+    return svc.memory_stats(db, get_memory(request))
+
+
+@router.get("/knowledge", response_model=list[KnowledgeOut])
+def knowledge(request: Request) -> list[KnowledgeOut]:
+    """Everything in semantic memory's knowledge collection: curated articles and consolidated resolved tickets."""
+    memory = get_memory(request)
+    return [KnowledgeOut.model_validate(k) for k in memory.list_knowledge()] if memory is not None else []
+
+
+@router.get("/knowledge/search", response_model=list[KnowledgeOut])
+def knowledge_search(request: Request, q: Annotated[str, Query(min_length=1, max_length=2000)],
+                     k: Annotated[int, Query(ge=1, le=10)] = 5) -> list[KnowledgeOut]:
+    """Semantic search over knowledge, unfiltered by the similarity floor, so the scores can be inspected."""
+    memory = get_memory(request)
+    return [KnowledgeOut.model_validate(h) for h in memory.search_knowledge(q, k=k)] if memory is not None else []
 
 
 @router.get("/evaluations/latest")

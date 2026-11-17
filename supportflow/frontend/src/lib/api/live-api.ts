@@ -1,6 +1,6 @@
 "use client";
 
-import type { AuditEvent, Category, Channel, Customer, EvaluationSummary, Priority, Ticket } from "../types";
+import type { AuditEvent, Category, Channel, Customer, EvaluationSummary, KnowledgeDoc, Priority, RetrievedDoc, Ticket, TicketMemory } from "../types";
 import { ApiError, mockApi } from "./mock-api";
 import { getState, setState } from "./store";
 
@@ -11,6 +11,10 @@ export const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000
 
 type ServerAudit = { id: number; ticketId: string; at: string; actor: AuditEvent["actor"]; action: string; detail: string | null };
 type ServerTicket = Ticket & { analysis: (Ticket["analysis"] & { error?: string | null }) | null };
+type ServerKnowledge = KnowledgeDoc & { similarity: number | null };
+type ServerMemory = Omit<TicketMemory, "knowledge"> & { knowledge: ServerKnowledge[] };
+
+const toRetrieved = ({ similarity, ...doc }: ServerKnowledge): RetrievedDoc => ({ doc, similarity: similarity ?? 0 });
 
 async function http<T>(path: string, init?: RequestInit): Promise<T> {
   const s = getState();
@@ -59,12 +63,15 @@ export const liveApi = {
     return http<{ ok: boolean; database: boolean; llmProvider: string; llmModel: string; llmConfigured: boolean }>("/api/health");
   },
 
-  /** Load all tickets + audit from the backend (replacing any mock tickets). */
+  /** Load all tickets + audit + knowledge from the backend (replacing any mock data). */
   async sync(): Promise<void> {
-    const [tickets, audit] = await Promise.all([http<ServerTicket[]>("/api/tickets"), http<ServerAudit[]>("/api/audit")]);
+    const [tickets, audit, knowledge] = await Promise.all([
+      http<ServerTicket[]>("/api/tickets"), http<ServerAudit[]>("/api/audit"), http<ServerKnowledge[]>("/api/knowledge"),
+    ]);
     const ids = new Set(tickets.map((t) => t.id));
     setState((s) => ({
       ...s,
+      knowledge: knowledge.map((k) => toRetrieved(k).doc),
       tickets: tickets.map((t) => ({ ...s.tickets.find((x) => x.id === t.id), ...t })),
       audit: [...s.audit.filter((e) => !e.id.startsWith("srv-") && ids.has(e.ticketId) && LOCAL_ACTIONS.has(e.action)), ...audit.map(toAudit)],
       drafts: s.drafts.filter((d) => ids.has(d.ticketId)),
@@ -90,6 +97,27 @@ export const liveApi = {
   async assignSenior(ticketId: string) { await act(ticketId, "/assign-senior"); },
 
   async recordManagerApproval(ticketId: string) { await act(ticketId, "/manager-approval"); },
+
+  /** Episodic + semantic memory for one ticket, from PostgreSQL and the ChromaDB vector store. */
+  async ticketMemory(ticketId: string): Promise<TicketMemory> {
+    const m = await http<ServerMemory>(`/api/tickets/${encodeURIComponent(ticketId)}/memory`);
+    return { ...m, knowledge: m.knowledge.map(toRetrieved) };
+  },
+
+  /** Top-3 similar resolved problems by embedding similarity (replaces the mock's in-browser TF-IDF). */
+  async retrieve(ticketId: string): Promise<RetrievedDoc[]> {
+    return (await liveApi.ticketMemory(ticketId)).knowledge;
+  },
+
+  async searchKnowledge(query: string, k = 5): Promise<RetrievedDoc[]> {
+    return (await http<ServerKnowledge[]>(`/api/knowledge/search?q=${encodeURIComponent(query)}&k=${k}`)).map(toRetrieved);
+  },
+
+  async resolveTicket(ticketId: string, resolution: string) {
+    await act(ticketId, "/resolve", { resolution });
+    const knowledge = await http<ServerKnowledge[]>("/api/knowledge");
+    setState((s) => ({ ...s, knowledge: knowledge.map((k) => toRetrieved(k).doc) }));
+  },
 
   async createTicket(input: { subject: string; body: string; customer: Customer; channel: Channel; analyze: boolean }): Promise<string> {
     const { analyze, ...payload } = input;

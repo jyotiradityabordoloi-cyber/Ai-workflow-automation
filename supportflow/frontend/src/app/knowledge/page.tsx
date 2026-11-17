@@ -3,9 +3,9 @@
 import { BookOpen, Search } from "lucide-react";
 import { useEffect, useState } from "react";
 import { PageHeader } from "@/components/shell";
-import { Card, CardHeader, CategoryBadge, EmptyState } from "@/components/ui";
+import { Badge, Card, CardHeader, CategoryBadge, EmptyState } from "@/components/ui";
 import { api, useWorkspace } from "@/lib/api";
-import { CATEGORIES, CATEGORY_LABEL } from "@/lib/format";
+import { CATEGORIES, CATEGORY_LABEL, timeAgo } from "@/lib/format";
 import type { Category, RetrievedDoc } from "@/lib/types";
 
 export default function KnowledgePage() {
@@ -47,6 +47,7 @@ export default function KnowledgePage() {
                       <span className="font-mono text-xs text-muted">{r.doc.id}</span>
                       <span className="text-[13px] font-medium">{r.doc.subject}</span>
                       <CategoryBadge c={r.doc.category} />
+                      {r.doc.source === "ticket" && <Badge tone="accent">Learned</Badge>}
                       <span className="ml-auto flex w-32 items-center gap-2">
                         <span className="h-1.5 flex-1 rounded-full bg-subtle"><span className="block h-full rounded-full bg-accent" style={{ width: `${r.similarity * 100}%` }} /></span>
                         <span className="font-mono text-[11px] tabular-nums text-muted">{r.similarity.toFixed(2)}</span>
@@ -74,6 +75,7 @@ export default function KnowledgePage() {
                       <span className="font-mono text-xs text-muted">{d.id}</span>
                       <span className="text-[13px] font-medium">{d.subject}</span>
                       <CategoryBadge c={d.category} />
+                      {d.source === "ticket" && <Badge tone="accent">Learned{d.resolvedAt ? ` ${timeAgo(d.resolvedAt)}` : ""}</Badge>}
                     </div>
                     <p className="mt-1 text-[13px] text-muted">{d.resolution}</p>
                   </li>
@@ -88,6 +90,7 @@ export default function KnowledgePage() {
             <CardHeader title="Index" />
             <dl className="space-y-2 p-4 text-[13px]">
               <div className="flex justify-between"><dt className="text-muted">Documents</dt><dd className="tabular-nums">{ws.knowledge.length}</dd></div>
+              <div className="flex justify-between"><dt className="text-muted">Learned from resolved tickets</dt><dd className="tabular-nums">{ws.knowledge.filter((d) => d.source === "ticket").length}</dd></div>
               {CATEGORIES.map((c) => (
                 <div key={c} className="flex justify-between"><dt className="text-muted">{CATEGORY_LABEL[c]}</dt><dd className="tabular-nums">{ws.knowledge.filter((d) => d.category === c).length}</dd></div>
               ))}
@@ -95,8 +98,14 @@ export default function KnowledgePage() {
           </Card>
           <Card className="p-4 text-[13px]">
             <p className="font-medium">Retrieval method</p>
-            <p className="mt-1 text-muted">Now: TF-IDF cosine similarity in the browser (mock phase).</p>
-            <p className="mt-1 text-muted">Step 3: sentence embeddings in a vector database, top-3 by cosine similarity, served by the backend with the same response shape.</p>
+            {api.mode === "live" ? (
+              <>
+                <p className="mt-1 text-muted">Sentence embeddings (all-MiniLM-L6-v2, run locally) in a ChromaDB vector store, ranked by cosine similarity. Tickets show the top 3 above a 0.30 floor.</p>
+                <p className="mt-1 text-muted">Resolving a ticket adds its fix here, so the next similar ticket finds it.</p>
+              </>
+            ) : (
+              <p className="mt-1 text-muted">Mock mode: TF-IDF cosine similarity in the browser. Live mode uses embeddings in ChromaDB.</p>
+            )}
           </Card>
         </div>
       </div>

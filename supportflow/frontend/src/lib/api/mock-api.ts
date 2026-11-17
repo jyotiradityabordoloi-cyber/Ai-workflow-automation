@@ -3,8 +3,14 @@
 import { CONFIDENCE_THRESHOLD, hasFlag } from "../rules";
 import { buildAnalysis, MOCK_MODEL, PENDING_ANALYSES } from "../mock/seed";
 import { search } from "../mock/retrieval";
-import type { AuditEvent, Category, Channel, Customer, Draft, EvaluationSummary, Escalation, EscalationBrief, Priority, RetrievedDoc, Ticket, Workspace } from "../types";
+import type { AuditEvent, Category, Channel, Customer, Draft, EpisodeKind, EvaluationSummary, Escalation, EscalationBrief, Priority, RetrievedDoc, Ticket, TicketMemory, Workspace } from "../types";
 import { getState, resetState, setState } from "./store";
+
+/** Audit actions that count as episodes in the customer's history (mock mode derives episodes from the audit trail). */
+const EPISODE_KIND: [RegExp, EpisodeKind][] = [
+  [/^Classified ticket/, "classified"], [/classification/i, "decision"], [/senior/i, "senior"],
+  [/^Manager approved/, "manager"], [/^Resolved ticket/, "resolved"],
+];
 
 // Mock implementation of the SupportFlow API. Every function is async and enforces the same
 // human-approval rules the backend will, so the UI is built against real behaviour, not props.
@@ -93,6 +99,46 @@ export const mockApi = {
   async searchKnowledge(query: string, k = 5): Promise<RetrievedDoc[]> {
     await wait(150);
     return search(getState().knowledge, query, k);
+  },
+
+  /** Episodic memory (the customer's earlier tickets, from the audit trail) and semantic memory (similar fixes). */
+  async ticketMemory(ticketId: string): Promise<TicketMemory> {
+    await wait(200);
+    const s = getState();
+    const t = ticketOf(s, ticketId);
+    const key = (x: Ticket) => x.customer.email?.toLowerCase() || `${x.customer.company}|${x.customer.name}`.toLowerCase();
+    const earlierTickets = s.tickets
+      .filter((x) => x.id !== t.id && key(x) === key(t) && x.createdAt < t.createdAt)
+      .sort((a, b) => b.createdAt.localeCompare(a.createdAt))
+      .slice(0, 10)
+      .map((x) => ({
+        id: x.id, subject: x.subject, status: x.status, createdAt: x.createdAt,
+        episodes: [
+          { kind: "opened" as const, summary: `Opened ${x.id}: ${x.subject || "(no subject)"}`, occurredAt: x.createdAt },
+          ...s.audit.filter((e) => e.ticketId === x.id).sort((a, b) => a.at.localeCompare(b.at)).flatMap((e) => {
+            const kind = EPISODE_KIND.find(([rx]) => rx.test(e.action))?.[1];
+            return kind ? [{ kind, summary: [e.action, e.detail].filter(Boolean).join(" · "), occurredAt: e.at }] : [];
+          }),
+        ],
+      }));
+    return { earlierTickets, knowledge: search(s.knowledge, `${t.subject} ${t.body}`, 3), corrections: [], usedByAi: t.analysis?.memory ?? null };
+  },
+
+  /** Close the ticket and consolidate its fix into the knowledge base. */
+  async resolveTicket(ticketId: string, resolution: string): Promise<void> {
+    await wait(200);
+    setState((s) => {
+      const t = ticketOf(s, ticketId);
+      const text = resolution.trim();
+      if (t.status === "resolved") throw new ApiError(`${t.id} is already resolved`);
+      if (t.decision.status === "pending") throw new ApiError("Accept or set the classification before resolving");
+      if (hasFlag(t.analysis?.flags, "manager_review") && !t.managerApproval) throw new ApiError("A manager must approve the handling of this ticket before it is resolved");
+      if (text.length < 10) throw new ApiError("Describe what fixed it (at least 10 characters)");
+      const at = now();
+      const learned = { id: t.id, subject: t.subject || "(no subject)", body: t.body, resolution: text, category: t.decision.category ?? "other", resolvedAt: at, source: "ticket" as const };
+      const next = { ...patchTicket(s, ticketId, { status: "resolved", resolution: { text, by: s.currentAgent, at } }), knowledge: [learned, ...s.knowledge.filter((d) => d.id !== t.id)] };
+      return audit(next, ticketId, "agent", "Resolved ticket", text.slice(0, 200));
+    });
   },
 
   async generateDraft(ticketId: string): Promise<void> {

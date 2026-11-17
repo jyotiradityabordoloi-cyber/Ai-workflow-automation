@@ -9,3 +9,6 @@ config/baseline_servicedesk.json
 .venv/
 supportflow/site/.taste-skill/
 supportflow/site/shots/
+
+# SupportFlow semantic memory (local ChromaDB store)
+supportflow/backend/.memory/

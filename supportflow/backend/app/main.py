@@ -4,6 +4,7 @@ import logging
 import time
 import uuid
 from contextlib import asynccontextmanager
+from typing import Any
 
 from fastapi import FastAPI, Request
 from fastapi.exceptions import RequestValidationError
@@ -14,6 +15,7 @@ from .ai.classification import build_classifier
 from .ai.llm import LLMClient, build_llm
 from .api import router
 from .config import get_settings
+from .memory.semantic import build_semantic_memory
 from .services.tickets import DomainError
 
 request_id: contextvars.ContextVar[str] = contextvars.ContextVar("request_id", default="-")
@@ -32,10 +34,12 @@ def configure_logging(level: str) -> None:
     root = logging.getLogger()
     root.handlers[:] = [handler]
     root.setLevel(level)
-    logging.getLogger("httpx").setLevel(logging.WARNING)  # its INFO lines would log full request URLs
+    for name in ("httpx", "httpx2"):  # their INFO lines would log full request URLs
+        logging.getLogger(name).setLevel(logging.WARNING)
 
 
-def create_app(llm: LLMClient | None = None) -> FastAPI:
+def create_app(llm: LLMClient | None = None, memory: Any = None) -> FastAPI:
+    """``memory`` is a SemanticMemory; tests inject an in-memory one, the server opens the persistent store."""
     settings = get_settings()
     configure_logging(settings.log_level)
     log = logging.getLogger("supportflow")
@@ -43,8 +47,15 @@ def create_app(llm: LLMClient | None = None) -> FastAPI:
     @asynccontextmanager
     async def lifespan(app: FastAPI):
         app.state.llm = llm or build_llm(settings)
-        app.state.classifier = build_classifier(app.state.llm)
-        log.info("ready: llm=%s", app.state.llm.model)
+        app.state.memory = memory
+        if memory is None:
+            try:
+                app.state.memory = build_semantic_memory(settings.memory_dir, settings.embedding_provider)
+            except Exception:  # noqa: BLE001 - run without semantic memory rather than not at all
+                log.exception("semantic memory unavailable; classifying without it")
+        app.state.classifier = build_classifier(app.state.llm, app.state.memory)
+        stats = app.state.memory.stats() if app.state.memory is not None else "off"
+        log.info("ready: llm=%s semantic_memory=%s", app.state.llm.model, stats)
         yield
 
     app = FastAPI(title="SupportFlow AI", version="0.2.0", lifespan=lifespan)

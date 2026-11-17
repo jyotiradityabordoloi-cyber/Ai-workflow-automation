@@ -26,6 +26,16 @@ class Settings(BaseSettings):
     confidence_threshold: float = 0.7
     manager_keywords: tuple[str, ...] = ("legal", "lawyer", "refund", "chargeback")
 
+    # Agent memory. Episodic = per-customer event history (PostgreSQL); semantic = resolved-ticket knowledge and
+    # agent corrections in a ChromaDB vector store. "onnx" embeds with all-MiniLM-L6-v2 (downloaded once, ~80 MB,
+    # runs locally); "hash" is a deterministic offline bag-of-words embedder for tests.
+    memory_dir: Path = BACKEND_DIR / ".memory"
+    embedding_provider: str = "onnx"
+    memory_history_days: int = 90
+    memory_history_limit: int = 5          # earlier tickets of the same customer shown to the classifier
+    knowledge_min_similarity: float = 0.3  # below this a "similar resolved ticket" is noise
+    correction_min_similarity: float = 0.6 # only near-duplicates of a corrected ticket steer the classifier
+
     cors_origins: list[str] = ["http://localhost:3000"]
     ticket_url_base: str = "http://localhost:3000/tickets"
     log_level: str = "INFO"

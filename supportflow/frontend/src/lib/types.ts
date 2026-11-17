@@ -40,6 +40,14 @@ export interface Analysis {
   model: string;
   analyzedAt: string;
   latencyMs: number;
+  /** What the recall step put in front of the model (live mode). */
+  memory?: MemoryUsed | null;
+}
+
+export interface MemoryUsed {
+  history: string[]; // earlier tickets of the same customer (episodic)
+  corrections: { id: string; similarity: number }[]; // near-identical tickets an agent re-classified (semantic)
+  knowledge: { id: string; similarity: number }[]; // similar resolved problems (semantic, not sent to the classifier)
 }
 
 /** The agent's decision on the AI classification. AI output is never auto-approved. */
@@ -64,6 +72,8 @@ export interface Ticket {
   decision: ClassificationDecision;
   /** set when the agent marks the manager-review flag as cleared */
   managerApproval?: { by: string; at: string };
+  /** set when an agent resolves the ticket; the fix is consolidated into knowledge */
+  resolution?: { text: string; by: string; at: string } | null;
 }
 
 export interface KnowledgeDoc {
@@ -72,7 +82,43 @@ export interface KnowledgeDoc {
   body: string;
   resolution: string;
   category: Category;
-  resolvedAt: string;
+  resolvedAt?: string | null;
+  /** kb = curated article; ticket = learned when an agent resolved that ticket */
+  source?: "kb" | "ticket";
+}
+
+// ---------------------------------------------------------------- agent memory
+export type EpisodeKind = "opened" | "classified" | "decision" | "senior" | "manager" | "resolved";
+
+export interface Episode {
+  kind: EpisodeKind;
+  summary: string;
+  occurredAt: string;
+}
+
+/** Episodic memory: one of the customer's earlier tickets and what happened on it. */
+export interface PastTicket {
+  id: string;
+  subject: string;
+  status: TicketStatus;
+  createdAt: string;
+  episodes: Episode[];
+}
+
+/** Semantic memory: an agent's correction of the AI on a near-identical ticket. */
+export interface Correction {
+  ticketId: string;
+  similarity: number;
+  excerpt: string;
+  ai: { category: Category; priority: Priority };
+  agent: { category: Category; priority: Priority };
+}
+
+export interface TicketMemory {
+  earlierTickets: PastTicket[];
+  knowledge: RetrievedDoc[];
+  corrections: Correction[];
+  usedByAi: MemoryUsed | null;
 }
 
 export interface RetrievedDoc {
