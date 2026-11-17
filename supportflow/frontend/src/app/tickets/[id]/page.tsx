@@ -10,7 +10,7 @@ import {
   Badge, Button, Card, CardHeader, CategoryBadge, ConfidenceBar, EmptyState, ErrorText, FlagBadge, PriorityBadge, SentimentBadge,
 } from "@/components/ui";
 import { api, useWorkspace } from "@/lib/api";
-import { CATEGORIES, CATEGORY_LABEL, dateTime, PRIORITIES, STATUS_LABEL, timeAgo } from "@/lib/format";
+import { CATEGORIES, CATEGORY_LABEL, dateTime, PRIORITIES, STATUS_LABEL, timeAgo, subjectOf } from "@/lib/format";
 import { CONFIDENCE_THRESHOLD, hasFlag } from "@/lib/rules";
 import type { Category, Priority, RetrievedDoc, Ticket } from "@/lib/types";
 import { useAction } from "@/lib/use-action";
@@ -22,7 +22,7 @@ function ClassifyForm({ ticket, onDone, submitLabel }: { ticket: Ticket; onDone?
   const hideAi = hasFlag(ticket.analysis?.flags, "manual_review");
   const [category, setCategory] = useState<Category | "">(ticket.decision.category ?? (hideAi ? "" : ticket.analysis?.category ?? ""));
   const [priority, setPriority] = useState<Priority | "">(ticket.decision.priority ?? (hideAi ? "" : ticket.analysis?.priority ?? ""));
-  const save = useAction(api.decideClassification);
+  const save = useAction(api.decideClassification, "Classification saved");
   return (
     <div>
       <div className="flex flex-wrap items-end gap-2">
@@ -48,8 +48,8 @@ function ClassifyForm({ ticket, onDone, submitLabel }: { ticket: Ticket; onDone?
 }
 
 function AnalysisCard({ t }: { t: Ticket }) {
-  const analyze = useAction(api.analyzeTicket);
-  const accept = useAction(api.decideClassification);
+  const analyze = useAction(api.analyzeTicket, "Analysis updated");
+  const accept = useAction(api.decideClassification, "Classification accepted");
   const [overriding, setOverriding] = useState(false);
   const a = t.analysis;
   const manual = hasFlag(a?.flags, "manual_review");
@@ -57,7 +57,7 @@ function AnalysisCard({ t }: { t: Ticket }) {
   return (
     <Card>
       <CardHeader title={<span className="flex items-center gap-1.5"><Sparkles className="size-3.5 text-accent" /> AI analysis</span>}
-        hint="Module 1 · classification is a suggestion until an agent accepts it"
+        hint="A suggestion until an agent accepts it"
         right={a && <Button variant="ghost" loading={analyze.loading} onClick={() => analyze.run(t.id)}><RefreshCw className="size-3.5" /> Re-run</Button>} />
       <div className="p-4">
         {!a ? (
@@ -136,9 +136,9 @@ function ResponseCard({ t }: { t: Ticket }) {
   const [open, setOpen] = useState<string | null>(null);
   const [rejecting, setRejecting] = useState(false);
   const [reason, setReason] = useState("");
-  const gen = useAction(api.generateDraft);
-  const approve = useAction(api.approveDraft);
-  const reject = useAction(api.rejectDraft);
+  const gen = useAction(api.generateDraft, "Draft ready for review");
+  const approve = useAction(api.approveDraft, "Response approved");
+  const reject = useAction(api.rejectDraft, "Draft rejected");
 
   useEffect(() => {
     let live = true;
@@ -155,10 +155,10 @@ function ResponseCard({ t }: { t: Ticket }) {
   return (
     <Card>
       <CardHeader title={<span className="flex items-center gap-1.5"><FileSearch className="size-3.5 text-accent" /> Response assistant</span>}
-        hint="Module 2 · drafts grounded in the 3 most similar resolved tickets; never sent automatically" />
+        hint="Drafted from the closest resolved tickets. Never sent automatically." />
       <div className="space-y-4 p-4">
         <div>
-          <p className="mb-2 text-xs text-muted">Retrieved context <span className="text-faint">· mock TF-IDF retrieval, vector search arrives in step 3</span></p>
+          <p className="mb-2 text-xs text-muted">Similar resolved tickets</p>
           {docs === null ? <p className="text-[13px] text-muted">Retrieving…</p> : docs.length === 0 ? (
             <p className="text-[13px] text-muted">No similar resolved tickets found.</p>
           ) : (
@@ -240,12 +240,12 @@ function ResponseCard({ t }: { t: Ticket }) {
 
 function SafetyCard({ t }: { t: Ticket }) {
   const ws = useWorkspace();
-  const senior = useAction(api.assignSenior);
-  const mgr = useAction(api.recordManagerApproval);
+  const senior = useAction(api.assignSenior, "Assigned to a senior agent");
+  const mgr = useAction(api.recordManagerApproval, "Manager approval recorded");
   const flags = t.analysis?.flags ?? [];
   return (
     <Card>
-      <CardHeader title={<span className="flex items-center gap-1.5"><ShieldAlert className="size-3.5" /> Safety & routing</span>} hint="Module 4 · rules the AI cannot bypass" />
+      <CardHeader title={<span className="flex items-center gap-1.5"><ShieldAlert className="size-3.5" /> Safety & routing</span>} hint="Rules the AI cannot bypass" />
       <div className="space-y-3 p-4 text-[13px]">
         {!t.analysis && <p className="text-muted">Flags appear after analysis.</p>}
         {t.analysis && flags.length === 0 && <p className="flex items-center gap-2 text-muted"><ShieldCheck className="size-4 text-ok" /> No safety flags.</p>}
@@ -276,12 +276,12 @@ function SafetyCard({ t }: { t: Ticket }) {
 
 function EscalationCard({ t }: { t: Ticket }) {
   const ws = useWorkspace();
-  const req = useAction(api.requestEscalation);
+  const req = useAction(api.requestEscalation, "Escalation brief created");
   const escs = ws.escalations.filter((e) => e.ticketId === t.id);
   const pending = escs.find((e) => e.status === "pending_approval");
   return (
     <Card>
-      <CardHeader title={<span className="flex items-center gap-1.5"><Siren className="size-3.5" /> Escalation</span>} hint="Module 3 · brief for engineering, posted only after approval" />
+      <CardHeader title={<span className="flex items-center gap-1.5"><Siren className="size-3.5" /> Escalation</span>} hint="Posted to engineering only after approval" />
       <div className="space-y-3 p-4 text-[13px]">
         {escs.map((e) => (
           <Link key={e.id} href={`/escalations#${e.id}`} className="block rounded-lg border border-line p-3 hover:bg-hover">
@@ -341,7 +341,7 @@ export default function TicketPage() {
   return (
     <>
       <PageHeader
-        title={<span className="flex items-center gap-2"><Link href="/inbox" className="text-muted hover:text-ink" aria-label="Back to inbox"><ArrowLeft className="size-4" /></Link>{t.subject}</span>}
+        title={<span className="flex items-center gap-2"><Link href="/inbox" className="text-muted hover:text-ink" aria-label="Back to inbox"><ArrowLeft className="size-4" /></Link>{subjectOf(t)}</span>}
         subtitle={<>{t.id} · {STATUS_LABEL[t.status]} · {t.channel.replace("_", " ")} · {timeAgo(t.createdAt)}{t.assignee && ` · assigned to ${t.assignee}`}</>}
       />
       <div className="grid gap-4 p-4 md:p-6 xl:grid-cols-[minmax(0,1fr)_340px]">
@@ -350,8 +350,8 @@ export default function TicketPage() {
             <div className="flex items-center gap-3 border-b border-line px-4 py-3">
               <Avatar name={t.customer.name} />
               <div className="min-w-0 text-[13px]">
-                <p className="font-medium">{t.customer.name} <span className="font-normal text-muted">· {t.customer.company}</span></p>
-                <p className="text-xs text-muted">{t.customer.email} · {t.customer.plan} plan</p>
+                <p className="font-medium">{t.customer.name}{t.customer.company && <span className="font-normal text-muted"> · {t.customer.company}</span>}</p>
+                <p className="text-xs text-muted">{[t.customer.email, `${t.customer.plan} plan`].filter(Boolean).join(" · ")}</p>
               </div>
               <span className="ml-auto text-xs text-faint">{dateTime(t.createdAt)}</span>
             </div>

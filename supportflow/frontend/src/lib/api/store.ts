@@ -7,7 +7,7 @@ import type { Workspace } from "../types";
 // Client-side store for the mock phase, persisted to localStorage so actions survive reloads.
 // From step 2 the same hooks read server state from the FastAPI backend instead.
 
-const KEY = "supportflow.mock.v1";
+const KEY = `supportflow.${process.env.NEXT_PUBLIC_API_MODE === "live" ? "live" : "mock"}.v1`;
 let state: Workspace | null = null;
 const listeners = new Set<() => void>();
 

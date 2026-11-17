@@ -5,10 +5,11 @@ import { Inbox as InboxIcon, Search } from "lucide-react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Suspense, useMemo } from "react";
+import { NewTicketButton } from "@/components/new-ticket";
 import { PageHeader } from "@/components/shell";
-import { Badge, CategoryBadge, ConfidenceBar, EmptyState, FlagBadge, PriorityBadge, SentimentBadge } from "@/components/ui";
+import { Badge, ConfidenceBar, EmptyState, FlagBadge, PriorityBadge, SentimentBadge } from "@/components/ui";
 import { useWorkspace } from "@/lib/api";
-import { CATEGORIES, CATEGORY_LABEL, FLAG_LABEL, PRIORITIES, STATUS_LABEL, timeAgo } from "@/lib/format";
+import { CATEGORIES, CATEGORY_LABEL, FLAG_LABEL, PRIORITIES, STATUS_LABEL, timeAgo, subjectOf } from "@/lib/format";
 import type { FlagType, Ticket, TicketStatus } from "@/lib/types";
 
 const TABS: { key: string; label: string; match: (t: Ticket) => boolean }[] = [
@@ -20,8 +21,8 @@ const TABS: { key: string; label: string; match: (t: Ticket) => boolean }[] = [
   { key: "all", label: "All", match: () => true },
 ];
 
-const STATUS_TONE: Record<TicketStatus, "neutral" | "accent" | "warn" | "bad" | "ok" | "info"> = {
-  new: "info", needs_review: "accent", in_progress: "neutral", awaiting_approval: "warn", escalated: "bad", resolved: "ok",
+const STATUS_DOT: Record<TicketStatus, string> = {
+  new: "bg-info", needs_review: "bg-ink", in_progress: "bg-faint", awaiting_approval: "bg-warn", escalated: "bg-bad", resolved: "bg-ok",
 };
 
 function InboxView() {
@@ -48,7 +49,7 @@ function InboxView() {
       const c = t.decision.category ?? t.analysis?.category;
       const p = t.decision.priority ?? t.analysis?.priority;
       return m.match(t)
-        && (!needle || `${t.id} ${t.subject} ${t.body} ${t.customer.company} ${t.customer.name}`.toLowerCase().includes(needle))
+        && (!needle || `${t.id} ${subjectOf(t)} ${t.body} ${t.customer.company} ${t.customer.name}`.toLowerCase().includes(needle))
         && (!cat || c === cat) && (!pri || p === pri)
         && (!flag || t.analysis?.flags.some((f) => f.type === flag));
     });
@@ -61,7 +62,7 @@ function InboxView() {
 
   return (
     <>
-      <PageHeader title="Inbox" subtitle="Every AI classification waits for an agent to accept or override it." />
+      <PageHeader title="Inbox" subtitle="Every AI classification waits for an agent to accept or override it." right={<NewTicketButton />} />
       <div className="border-b border-line bg-surface px-4 md:px-6">
         <div className="flex gap-1 overflow-x-auto">
           {TABS.map((t) => {
@@ -115,17 +116,17 @@ function InboxView() {
                     <Link href={`/tickets/${t.id}`} className="grid grid-cols-[34px_1fr] gap-x-3 gap-y-1 px-4 py-3 hover:bg-hover lg:grid-cols-[34px_minmax(0,1fr)_150px_180px_96px_auto_70px] lg:items-center">
                       <div>{p ? <PriorityBadge p={p} /> : <Badge tone="info">New</Badge>}</div>
                       <div className="min-w-0">
-                        <p className="truncate text-[13px] font-medium">{t.subject}</p>
+                        <p className="truncate text-[13px] font-medium">{subjectOf(t)}</p>
                         <p className="truncate text-xs text-muted">{a && !manual ? a.summary : t.body}</p>
                       </div>
                       <div className="col-start-2 truncate text-xs text-muted lg:col-start-auto">{t.customer.company} <span className="text-faint">· {t.customer.plan}</span></div>
                       <div className="col-start-2 flex gap-1 lg:col-start-auto">
-                        {c && !manual && <CategoryBadge c={c} />}
-                        {a && !manual && <SentimentBadge s={a.sentiment} />}
+                        {c && !manual && <span className="text-xs text-muted">{CATEGORY_LABEL[c]}</span>}
+                        {a && !manual && (a.sentiment === "angry" || a.sentiment === "frustrated") && <SentimentBadge s={a.sentiment} />}
                       </div>
                       <div className="col-start-2 lg:col-start-auto">{a && <ConfidenceBar value={a.confidence} compact />}</div>
                       <div className="col-start-2 flex flex-wrap gap-1 lg:col-start-auto">
-                        <Badge tone={STATUS_TONE[t.status]}>{STATUS_LABEL[t.status]}</Badge>
+                        <span className="inline-flex items-center gap-1.5 text-xs text-muted"><span className={clsx("size-1.5 rounded-full", STATUS_DOT[t.status])} />{STATUS_LABEL[t.status]}</span>
                         {a?.flags.map((f) => <FlagBadge key={f.type} f={f.type} reason={f.reason} />)}
                       </div>
                       <div className="col-start-2 text-xs text-faint lg:col-start-auto lg:text-right">{timeAgo(t.createdAt)}</div>

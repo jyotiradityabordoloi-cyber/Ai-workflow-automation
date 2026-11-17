@@ -1,16 +1,21 @@
 @import "tailwindcss";
 
+/* One system with the SupportFlow landing page (supportflow/site): palette white-mint-tiles, Epilogue +
+   JetBrains Mono. The interface stays neutral; the primary action is the ink, mint is the one accent
+   (selection, the "AI" marks, dark mode's primary). No violet anywhere. */
 :root {
-  --bg: #f7f7f8;
+  --bg: #f7f7f7;
   --surface: #ffffff;
-  --subtle: #f2f2f4;
-  --hover: #ececef;
-  --line: #e4e4e8;
-  --ink: #18181b;
-  --muted: #6b6b76;
-  --faint: #9a9aa4;
-  --accent: #5b5bd6;
-  --accent-soft: #ededfc;
+  --subtle: #f3f3f3;
+  --hover: #ececec;
+  --line: #e5e5e5;
+  --ink: #232323;
+  --muted: #686868;
+  --faint: #8f8f8f;
+  --accent: #232323;
+  --accent-ink: #ffffff;
+  --accent-soft: #dcfbe9;
+  --mint: #a1ffcb;
   --ok: #18794e;
   --ok-soft: #e6f6ee;
   --warn: #a35200;
@@ -23,16 +28,18 @@
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --bg: #0f0f11;
-    --surface: #17171a;
-    --subtle: #1d1d21;
-    --hover: #242429;
-    --line: #2a2a30;
-    --ink: #ededf0;
-    --muted: #a0a0ab;
-    --faint: #6e6e78;
-    --accent: #8b8cf6;
-    --accent-soft: #23234a;
+    --bg: #141414;
+    --surface: #1c1c1c;
+    --subtle: #232323;
+    --hover: #2b2b2b;
+    --line: #303030;
+    --ink: #f2f2f2;
+    --muted: #a4a4a4;
+    --faint: #767676;
+    --accent: #a1ffcb;
+    --accent-ink: #232323;
+    --accent-soft: #1d3328;
+    --mint: #a1ffcb;
     --ok: #3dd68c;
     --ok-soft: #12291e;
     --warn: #f2a541;
@@ -55,6 +62,8 @@
   --color-faint: var(--faint);
   --color-accent: var(--accent);
   --color-accent-soft: var(--accent-soft);
+  --color-accent-ink: var(--accent-ink);
+  --color-mint: var(--mint);
   --color-ok: var(--ok);
   --color-ok-soft: var(--ok-soft);
   --color-warn: var(--warn);
@@ -63,8 +72,40 @@
   --color-bad-soft: var(--bad-soft);
   --color-info: var(--info);
   --color-info-soft: var(--info-soft);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --font-sans: var(--font-epilogue);
+  --font-mono: var(--font-jetbrains);
+}
+
+h1 {
+  letter-spacing: -0.02em;
+}
+
+/* Floating chrome (the sticky page header): a translucent material with content scrolling under it,
+   and a soft scroll-edge fade instead of a hard 1px divider. */
+.sf-chrome {
+  background: color-mix(in oklab, var(--bg) 72%, transparent);
+  backdrop-filter: blur(20px) saturate(180%);
+  -webkit-backdrop-filter: blur(20px) saturate(180%);
+}
+.sf-chrome::after {
+  content: "";
+  position: absolute;
+  inset: 100% 0 auto 0;
+  height: 12px;
+  background: linear-gradient(color-mix(in oklab, var(--ink) 5%, transparent), transparent);
+  pointer-events: none;
+}
+@media (prefers-reduced-transparency: reduce) {
+  .sf-chrome { background: var(--bg); backdrop-filter: none; -webkit-backdrop-filter: none; }
+}
+@media (prefers-contrast: more) {
+  .sf-chrome { background: var(--bg); border-bottom: 1px solid var(--ink); }
+  .sf-chrome::after { display: none; }
+}
+
+@keyframes toast-in {
+  from { opacity: 0; transform: translateY(6px); }
+  to { opacity: 1; transform: none; }
 }
 
 html,

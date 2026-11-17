@@ -30,6 +30,7 @@ export interface Customer {
 
 /** Output of the classification step (Module 1). */
 export interface Analysis {
+  language?: string | null; // ISO 639-1, reported by the model (live mode)
   category: Category;
   priority: Priority;
   sentiment: Sentiment;
@@ -127,6 +128,22 @@ export interface AuditEvent {
   actor: "ai" | "agent" | "system";
   action: string;
   detail?: string;
+}
+
+/** Summary written by backend/eval/run_eval.py (snake_case, served as-is). */
+export interface EvaluationSummary {
+  run_at: string;
+  dataset: string;
+  split: "dev" | "test" | string;
+  n: number;
+  model: string;
+  fields: Record<"category" | "priority" | "sentiment", {
+    accuracy_pct: number; majority_baseline_pct: number; majority_label: string; errors: Record<string, number>; macro_f1?: number;
+  }>;
+  manual_review: { expected: number; caught: number; recall_pct: number | null; precision_pct: number | null; extra: string[] };
+  calibration: { threshold: number; above_n: number; above_accuracy_pct: number | null; below_n: number; below_accuracy_pct: number | null; confidence_values: Record<string, number> };
+  latency_ms: { p50: number | null; p95: number | null };
+  llm_failures: number;
 }
 
 export interface Workspace {

@@ -1,0 +1,366 @@
+[
+ {
+  "id": "SF-1042",
+  "subject": "Charged twice this month",
+  "body": "I've been charged twice this month and I've sent 3 emails already. This is unacceptable.",
+  "channel": "email",
+  "minutesAgo": 6,
+  "customer": {
+   "name": "Maya Chen",
+   "company": "Northwind Studio",
+   "email": "maya@northwind.example",
+   "plan": "Pro"
+  }
+ },
+ {
+  "id": "SF-1041",
+  "subject": "Dashboard returning 500 errors for the whole team",
+  "body": "The dashboard has been returning 500 errors for our whole team since 9am. We can't open any reports and we have a client demo at 2pm today.",
+  "channel": "chat",
+  "minutesAgo": 14,
+  "customer": {
+   "name": "Daniel Okafor",
+   "company": "Contoso Ltd",
+   "email": "daniel@contoso.example",
+   "plan": "Business"
+  }
+ },
+ {
+  "id": "SF-1040",
+  "subject": "Final warning before chargeback",
+  "body": "If the duplicate charge isn't refunded by Friday I am filing a chargeback with my bank and handing this to my lawyer. Four emails and nobody has replied.",
+  "channel": "email",
+  "minutesAgo": 22,
+  "customer": {
+   "name": "Maya Chen",
+   "company": "Northwind Studio",
+   "email": "maya@northwind.example",
+   "plan": "Pro"
+  }
+ },
+ {
+  "id": "SF-1039",
+  "subject": "Schedule exports to Google Drive",
+  "body": "Love the new export feature! Would be great if we could schedule exports to run weekly straight into Google Drive.",
+  "channel": "web_form",
+  "minutesAgo": 31,
+  "customer": {
+   "name": "Priya Raman",
+   "company": "Blue Yonder Media",
+   "email": "priya@blueyonder.example",
+   "plan": "Pro"
+  }
+ },
+ {
+  "id": "SF-1038",
+  "subject": "",
+  "body": "help",
+  "channel": "email",
+  "minutesAgo": 45,
+  "customer": {
+   "name": "Unknown sender",
+   "company": "—",
+   "email": "noreply@unknown.example",
+   "plan": "Starter"
+  }
+ },
+ {
+  "id": "SF-1037",
+  "subject": "Acceso",
+  "body": "No puedo iniciar sesión desde ayer, me dice que mi contraseña es incorrecta aunque la cambié.",
+  "channel": "email",
+  "minutesAgo": 58,
+  "customer": {
+   "name": "Carlos Diaz",
+   "company": "Grupo Lumen",
+   "email": "carlos@lumen.example",
+   "plan": "Pro"
+  }
+ },
+ {
+  "id": "SF-1036",
+  "subject": "Admin account possibly compromised",
+  "body": "We think someone got into our admin account: there are two API keys none of us created and a login from a country we don't operate in. Please lock it down right away.",
+  "channel": "email",
+  "minutesAgo": 72,
+  "customer": {
+   "name": "Grace Kim",
+   "company": "Tailspin Toys",
+   "email": "grace@tailspin.example",
+   "plan": "Enterprise"
+  }
+ },
+ {
+  "id": "SF-1035",
+  "subject": "CSV import fails at row 1,200",
+  "body": "CSV import keeps failing at row 1,200 with 'invalid date format' even though every date is YYYY-MM-DD. Smaller files import fine. Tried three times.",
+  "channel": "web_form",
+  "minutesAgo": 95,
+  "customer": {
+   "name": "Sofia Alvarez",
+   "company": "Litware",
+   "email": "sofia@litware.example",
+   "plan": "Starter"
+  }
+ },
+ {
+  "id": "SF-1034",
+  "subject": "Invoice with VAT number",
+  "body": "Can you send me the October invoice with our VAT number on it? Our finance team needs it for reconciliation.",
+  "channel": "email",
+  "minutesAgo": 130,
+  "customer": {
+   "name": "Ahmed Hassan",
+   "company": "Adventure Works",
+   "email": "ahmed@adventure.example",
+   "plan": "Business"
+  }
+ },
+ {
+  "id": "SF-1033",
+  "subject": "Password reset email never arrives",
+  "body": "Password reset emails never arrive. I checked spam and tried four times today. I'm locked out.",
+  "channel": "chat",
+  "minutesAgo": 160,
+  "customer": {
+   "name": "Ravi Menon",
+   "company": "Proseware",
+   "email": "ravi@proseware.example",
+   "plan": "Starter"
+  }
+ },
+ {
+  "id": "SF-1032",
+  "subject": "Webhook deliveries delayed",
+  "body": "Webhook deliveries to our endpoint have been delayed by about 20 minutes since yesterday. Not blocking us, but noticeable.",
+  "channel": "email",
+  "minutesAgo": 190,
+  "customer": {
+   "name": "Elena Rossi",
+   "company": "Datum Corp",
+   "email": "elena@datum.example",
+   "plan": "Enterprise"
+  }
+ },
+ {
+  "id": "SF-1031",
+  "subject": "Why did our bill go up?",
+  "body": "Why did our bill go up from $49 to $79? Nobody told us about any price change.",
+  "channel": "email",
+  "minutesAgo": 240,
+  "customer": {
+   "name": "Jonas Berg",
+   "company": "Lucerne Publishing",
+   "email": "jonas@lucerne.example",
+   "plan": "Pro"
+  }
+ },
+ {
+  "id": "SF-1030",
+  "subject": "Blank PDFs going to our clients",
+  "body": "You pushed an update and now ALL our scheduled reports are emailing blank PDFs to our clients. This is embarrassing and we're losing clients over it. Fix it NOW.",
+  "channel": "email",
+  "minutesAgo": 300,
+  "customer": {
+   "name": "Daniel Okafor",
+   "company": "Contoso Ltd",
+   "email": "daniel@contoso.example",
+   "plan": "Business"
+  }
+ },
+ {
+  "id": "SF-1029",
+  "subject": "Date picker ignores week start",
+  "body": "Small thing: the date picker shows Sunday as the first day of the week even though I set Monday in my preferences.",
+  "channel": "web_form",
+  "minutesAgo": 360,
+  "customer": {
+   "name": "Tom Becker",
+   "company": "Wingtip",
+   "email": "tom@wingtip.example",
+   "plan": "Pro"
+  }
+ },
+ {
+  "id": "SF-1028",
+  "subject": "Okta SSO support?",
+  "body": "Is there any plan to support SSO with Okta? Our IT team is asking before we roll this out to 200 people.",
+  "channel": "email",
+  "minutesAgo": 420,
+  "customer": {
+   "name": "Aisha Bello",
+   "company": "Coho Winery",
+   "email": "aisha@coho.example",
+   "plan": "Business"
+  }
+ },
+ {
+  "id": "SF-1027",
+  "subject": "Search breaks on apostrophes",
+  "body": "Search returns no results for any query containing an apostrophe, e.g. O'Brien. We tried wrapping it in quotes and escaping it with a backslash, same result.",
+  "channel": "chat",
+  "minutesAgo": 510,
+  "customer": {
+   "name": "Mei Tanaka",
+   "company": "Graphic Design Institute",
+   "email": "mei@gdi.example",
+   "plan": "Pro"
+  }
+ },
+ {
+  "id": "SF-1026",
+  "subject": "Extra seats bought by mistake",
+  "body": "We accidentally bought 5 extra seats. Can we get a refund for those, or just downgrade?",
+  "channel": "email",
+  "minutesAgo": 600,
+  "customer": {
+   "name": "Lukas Weber",
+   "company": "Fabrikam Inc",
+   "email": "lukas@fabrikam.example",
+   "plan": "Business"
+  }
+ },
+ {
+  "id": "SF-1025",
+  "subject": "Dark mode",
+  "body": "Honestly it's frustrating that there's still no dark mode. Every other tool we use has it.",
+  "channel": "web_form",
+  "minutesAgo": 700,
+  "customer": {
+   "name": "Priya Raman",
+   "company": "Blue Yonder Media",
+   "email": "priya@blueyonder.example",
+   "plan": "Pro"
+  }
+ },
+ {
+  "id": "SF-1024",
+  "subject": "Android app crashes on launch",
+  "body": "The mobile app crashes immediately on launch on Android 15 since today's update. We reinstalled, cleared the cache and rebooted, still crashes. Our field team can't log any visits.",
+  "channel": "email",
+  "minutesAgo": 820,
+  "customer": {
+   "name": "Grace Kim",
+   "company": "Tailspin Toys",
+   "email": "grace@tailspin.example",
+   "plan": "Enterprise"
+  }
+ },
+ {
+  "id": "SF-1023",
+  "subject": "Add a view-only teammate",
+  "body": "How do I add a new team member with view-only access?",
+  "channel": "chat",
+  "minutesAgo": 950,
+  "customer": {
+   "name": "Ravi Menon",
+   "company": "Proseware",
+   "email": "ravi@proseware.example",
+   "plan": "Starter"
+  }
+ },
+ {
+  "id": "SF-1022",
+  "subject": "DPA before renewal",
+  "body": "Our legal team needs a copy of your DPA and the current sub-processor list before we can sign the renewal.",
+  "channel": "email",
+  "minutesAgo": 1100,
+  "customer": {
+   "name": "Elena Rossi",
+   "company": "Datum Corp",
+   "email": "elena@datum.example",
+   "plan": "Enterprise"
+  }
+ },
+ {
+  "id": "SF-1021",
+  "subject": "Payment methods",
+  "body": "Which payment methods do you accept besides credit card?",
+  "channel": "web_form",
+  "minutesAgo": 1300,
+  "customer": {
+   "name": "Sofia Alvarez",
+   "company": "Litware",
+   "email": "sofia@litware.example",
+   "plan": "Starter"
+  }
+ },
+ {
+  "id": "SF-1020",
+  "subject": "",
+  "body": "it's not working",
+  "channel": "email",
+  "minutesAgo": 1500,
+  "customer": {
+   "name": "Unknown sender",
+   "company": "—",
+   "email": "noreply@unknown.example",
+   "plan": "Starter"
+  }
+ },
+ {
+  "id": "SF-1019",
+  "subject": "Timestamps in UTC",
+  "body": "The 'Last updated' timestamp on reports shows UTC instead of our account timezone (IST).",
+  "channel": "email",
+  "minutesAgo": 1700,
+  "customer": {
+   "name": "Jonas Berg",
+   "company": "Lucerne Publishing",
+   "email": "jonas@lucerne.example",
+   "plan": "Pro"
+  }
+ },
+ {
+  "id": "SF-1018",
+  "subject": "Partner programme for agencies",
+  "body": "Do you have a partner or reseller program for agencies?",
+  "channel": "email",
+  "minutesAgo": 1900,
+  "customer": {
+   "name": "Aisha Bello",
+   "company": "Coho Winery",
+   "email": "aisha@coho.example",
+   "plan": "Business"
+  }
+ },
+ {
+  "id": "SF-1017",
+  "subject": "Bulk tag API",
+  "body": "Would love an API endpoint to bulk-update tags on records. Happy to beta test it!",
+  "channel": "email",
+  "minutesAgo": 2200,
+  "customer": {
+   "name": "Mei Tanaka",
+   "company": "Graphic Design Institute",
+   "email": "mei@gdi.example",
+   "plan": "Pro"
+  }
+ },
+ {
+  "id": "SF-1043",
+  "subject": "Seats not updating after upgrade",
+  "body": "We upgraded to Business an hour ago but the seat count still shows 10 and new invites fail.",
+  "channel": "chat",
+  "minutesAgo": 2,
+  "customer": {
+   "name": "Lukas Weber",
+   "company": "Fabrikam Inc",
+   "email": "lukas@fabrikam.example",
+   "plan": "Business"
+  }
+ },
+ {
+  "id": "SF-1044",
+  "subject": "Can't connect Slack integration",
+  "body": "Clicking 'Connect Slack' shows a blank popup and nothing happens. Tried Chrome and Firefox.",
+  "channel": "email",
+  "minutesAgo": 1,
+  "customer": {
+   "name": "Tom Becker",
+   "company": "Wingtip",
+   "email": "tom@wingtip.example",
+   "plan": "Pro"
+  }
+ }
+]

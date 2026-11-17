@@ -7,7 +7,7 @@ import { useState } from "react";
 import { PageHeader } from "@/components/shell";
 import { Badge, Button, Card, CardHeader, EmptyState, ErrorText, PriorityBadge } from "@/components/ui";
 import { api, useWorkspace } from "@/lib/api";
-import { dateTime, PRIORITIES, timeAgo } from "@/lib/format";
+import { dateTime, PRIORITIES, timeAgo, subjectOf } from "@/lib/format";
 import type { Escalation, EscalationStatus, Priority } from "@/lib/types";
 import { useAction } from "@/lib/use-action";
 
@@ -34,8 +34,8 @@ function PendingCard({ e }: { e: Escalation }) {
   const approve = useAction(async () => {
     await api.updateEscalationBrief(e.id, { ...e.brief, summary: summary.trim(), priority, troubleshooting: steps.split("\n").map((s) => s.trim()).filter(Boolean) });
     await api.approveEscalation(e.id);
-  });
-  const reject = useAction(api.rejectEscalation);
+  }, `Posted to ${e.channel} (simulated)`);
+  const reject = useAction(api.rejectEscalation, "Escalation rejected");
   const lines = summary.split("\n").filter(Boolean).length;
 
   return (
@@ -83,7 +83,10 @@ export default function EscalationsPage() {
   const [tab, setTab] = useState<EscalationStatus>("pending_approval");
   const list = ws.escalations.filter((e) => e.status === tab).sort((a, b) => b.requestedAt.localeCompare(a.requestedAt));
   const posted = ws.escalations.filter((e) => e.status === "posted").sort((a, b) => (b.decidedAt ?? "").localeCompare(a.decidedAt ?? ""));
-  const subject = (id: string) => ws.tickets.find((t) => t.id === id)?.subject ?? id;
+  const subject = (id: string) => {
+    const t = ws.tickets.find((x) => x.id === id);
+    return t ? subjectOf(t) : id;
+  };
 
   return (
     <>
@@ -126,7 +129,7 @@ export default function EscalationsPage() {
             {posted.length === 0 && <li className="text-[13px] text-muted">No messages yet.</li>}
             {posted.map((e) => (
               <li key={e.id} className="flex gap-2.5">
-                <span className="grid size-7 shrink-0 place-items-center rounded-md bg-accent text-[11px] font-semibold text-white">SF</span>
+                <span className="grid size-7 shrink-0 place-items-center rounded-md bg-accent text-[11px] font-semibold text-accent-ink">SF</span>
                 <div className="min-w-0">
                   <p className="text-[13px]"><b>SupportFlow</b> <span className="text-xs text-faint">{e.decidedAt && dateTime(e.decidedAt)} · approved by {e.decidedBy}</span></p>
                   <SlackMessage e={e} />

@@ -3,7 +3,7 @@
 import { CONFIDENCE_THRESHOLD, hasFlag } from "../rules";
 import { buildAnalysis, MOCK_MODEL, PENDING_ANALYSES } from "../mock/seed";
 import { search } from "../mock/retrieval";
-import type { AuditEvent, Category, Draft, Escalation, EscalationBrief, Priority, RetrievedDoc, Ticket, Workspace } from "../types";
+import type { AuditEvent, Category, Channel, Customer, Draft, EvaluationSummary, Escalation, EscalationBrief, Priority, RetrievedDoc, Ticket, Workspace } from "../types";
 import { getState, resetState, setState } from "./store";
 
 // Mock implementation of the SupportFlow API. Every function is async and enforces the same
@@ -187,6 +187,39 @@ export const mockApi = {
       const next = { ...s, escalations: s.escalations.map((x) => (x.id === id ? { ...x, status: "rejected" as const, rejectionReason: reason, decidedBy: s.currentAgent, decidedAt: now() } : x)) };
       return audit(patchTicket(next, e.ticketId, { status: "in_progress" }), e.ticketId, "agent", "Rejected escalation", reason);
     });
+  },
+
+  async health() {
+    return { ok: true, database: false, llmProvider: "mock", llmModel: MOCK_MODEL, llmConfigured: false };
+  },
+
+  /** Mock mode never has measured results: accuracy is only shown after a real evaluation run. */
+  async latestEvaluation(): Promise<EvaluationSummary | null> {
+    return null;
+  },
+
+  async sync(): Promise<void> {
+    /* mock mode: state is local, nothing to sync */
+  },
+
+  /** Module 1 intake form. In mock mode the "analysis" is a keyword heuristic, clearly labelled as such. */
+  async createTicket(input: { subject: string; body: string; customer: Customer; channel: Channel; analyze: boolean }): Promise<string> {
+    await wait(300);
+    const s0 = getState();
+    const id = `SF-${Math.max(1000, ...s0.tickets.map((t) => Number(t.id.replace(/\D/g, "")) || 0)) + 1}`;
+    const ticket: Ticket = { id, subject: input.subject.trim(), body: input.body.trim(), customer: input.customer, channel: input.channel,
+      createdAt: now(), status: "new", assignee: null, analysis: null, decision: { status: "pending" } };
+    setState((s) => audit({ ...s, tickets: [ticket, ...s.tickets] }, id, "agent", "Created ticket", `via ${input.channel.replace("_", " ")} by ${s.currentAgent}`));
+    if (input.analyze) {
+      const text = `${ticket.subject} ${ticket.body}`.toLowerCase();
+      const rules: [Category, RegExp][] = [["billing", /charg|invoice|bill|refund|payment|price|seat/], ["bug", /error|crash|fail|blank|broken|delay|wrong/],
+        ["feature_request", /would (love|be great)|any plan|dark mode|endpoint/], ["account", /password|owner|access|delete|admin|login/]];
+      const cat = rules.find(([, rx]) => rx.test(text))?.[0] ?? "other";
+      const angry = /unacceptable|\bnow\b|lawyer|embarrass/.test(text);
+      PENDING_ANALYSES[id] = [cat, angry ? "P1" : "P2", angry ? "angry" : "neutral", 0.75, ticket.body.split(/(?<=[.!?])\s+/).slice(0, 2).join(" ")];
+      await mockApi.analyzeTicket(id);
+    }
+    return id;
   },
 
   async setRole(role: Workspace["currentRole"]): Promise<void> {

@@ -1,0 +1,581 @@
+<!doctype html>
+<html lang="en" data-type="software" data-radius="soft" data-ground="sky" data-buttons="solid" data-motion>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>SupportFlow AI: ticket triage for B2B support teams</title>
+<meta name="description" content="An agent workspace where an LLM classifies each support ticket and drafts the reply, and a person approves every step before anything changes.">
+<meta property="og:type" content="website">
+<meta property="og:title" content="SupportFlow AI: ticket triage for B2B support teams">
+<meta property="og:description" content="An LLM classifies each ticket and drafts the reply; a person approves every step.">
+<meta property="og:image" content="share.jpg">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="icon" href="favicon.svg" type="image/svg+xml">
+<meta name="theme-color" content="#ffffff">
+<!-- <link rel="canonical" href="https://[domain to come]/"> : listed in the report until the demo has a domain -->
+<meta name="site-kind" content="software">
+<meta name="page-type" content="software">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Epilogue:wght@400..700&family=JetBrains+Mono:wght@400..500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/system.css">
+<link rel="stylesheet" href="assets/ui/cards.css">
+<link rel="stylesheet" href="assets/motion/motion.css">
+<link rel="stylesheet" href="assets/backgrounds/backgrounds.css">
+<link rel="stylesheet" href="assets/layout/layout.css">
+<link rel="stylesheet" href="assets/icons/icon.css">
+<style>
+:root {
+  --p-bg: #ffffff; --p-surface: #f3f3f3; --p-ink: #232323; --p-muted: #686868;
+  --p-accent: #a1ffcb; --p-accent-ink: #232323; --p-action: #232323; --p-action-ink: #ffffff;
+  --p-inv-bg: #232323; --p-inv-surface: #303030; --p-inv-ink: #ffffff; --p-inv-muted: #a4a4a4;
+  --p-inv-accent: #a1ffcb; --p-inv-accent-ink: #232323; --p-inv-action: #a1ffcb; --p-inv-action-ink: #232323;
+  --font-display: "Epilogue", system-ui, sans-serif;
+  --font-text: "Epilogue", system-ui, sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace;
+  --display-weight: 400;
+  --display-tracking: -0.035em;
+  --display-tracking-xl: -0.045em;
+  --ly-scale: 0.97;
+}
+</style>
+<link rel="stylesheet" href="assets/ui/base.css">
+<link rel="stylesheet" href="assets/ui/window/fragment.css">
+<link rel="stylesheet" href="assets/diagrams/diagram.css">
+<script>document.documentElement.classList.add('m-enter');setTimeout(()=>document.documentElement.classList.add('m-enter-done'),700)</script>
+<script src="assets/backgrounds/backgrounds.js"></script>
+<script>document.documentElement.classList.add('mo-js');setTimeout(()=>document.documentElement.classList.add('mo-safe'),2500)</script>
+<link rel="modulepreload" href="assets/moments/moments.js">
+<link rel="modulepreload" href="assets/moments/lib.js">
+<link rel="modulepreload" href="assets/moments/pinned-chapters/moment.js">
+<!-- page CSS: only inside visuals (the app frame, SupportFlow's own panes, the accuracy table) and one --p-h per card group -->
+<style>
+  /* app-frame (sections-library.md, app-frame) */
+  .app.ui { display: grid; grid-template-columns: minmax(0, 5fr) minmax(0, 7fr); margin-top: var(--s-7); background: var(--u-bg); border: 1px solid var(--u-border); border-radius: var(--u-r); box-shadow: var(--u-shadow); }
+  .app > .app__pane { position: relative; min-width: 0; min-height: 0; overflow: hidden; }
+  .app > .app__pane + .app__pane { border-left: 1px solid var(--u-line); }
+  .app > .app__pane > .ui-panel { width: 100%; border: 0; border-radius: 0; box-shadow: none; }
+  .app > .app__pane::after { content: ""; position: absolute; inset: auto 0 0 0; height: 64px; background: linear-gradient(transparent, var(--u-bg)); pointer-events: none; }
+  @media (min-width: 1024px) and (max-width: 1279px) { .app.ui { grid-template-columns: minmax(0, 4fr) minmax(0, 8fr); } }
+  @media (max-width: 1023px) {
+    .app.ui { grid-template-columns: minmax(0, 1fr); grid-template-rows: auto minmax(0, 1fr); }
+    .app > .app__pane--list { max-height: 252px; }
+    .app > .app__pane--list::after { display: none; }
+    .app .ui-win__side { display: none; }
+    .app .ui-win__body { grid-template-columns: minmax(0, 1fr); }
+    .app > .app__pane + .app__pane { border-left: 0; border-top: 1px solid var(--u-line); }
+  }
+  @media (max-width: 639px) {
+    .app.ui { grid-template-rows: minmax(0, 1fr); }
+    .app > .app__pane--list { display: none; }
+    .app > .app__pane + .app__pane { border-top: 0; }
+  }
+
+  /* SupportFlow's own screens, drawn with the kit's UI tokens */
+  .sf { font: 13px/1.5 var(--font-text); color: var(--u-ink); background: var(--u-bg); }
+  .sf-pad { padding: 16px 20px; }
+  .sf-head { display: flex; align-items: center; gap: 8px; padding: 12px 20px; border-bottom: 1px solid var(--u-line); }
+  .sf-id { font: 12px/1 var(--font-mono); color: var(--u-muted); }
+  .sf-subject { font-weight: 500; font-size: 14px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .sf-who { display: flex; align-items: center; gap: 10px; color: var(--u-muted); font-size: 12px; }
+  .sf-who b { color: var(--u-ink); font-weight: 500; font-size: 13px; }
+  .sf-msg { margin: 10px 0 0; font-size: 13px; line-height: 1.6; }
+  .sf-box { margin-top: 14px; border: 1px solid var(--u-border); border-radius: 10px; padding: 12px 14px; }
+  .sf-box__title { display: flex; align-items: center; gap: 6px; font-weight: 500; margin-bottom: 10px; }
+  .sf-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; }
+  .sf-grid dt { font-size: 12px; color: var(--u-muted); margin-bottom: 4px; }
+  .sf-grid dd { margin: 0; }
+  .sf-bar { position: relative; height: 6px; border-radius: 99px; background: var(--u-fill); margin-top: 7px; }
+  .sf-bar > i { position: absolute; inset: 0 auto 0 0; border-radius: 99px; background: var(--u-ink); }
+  .sf-bar > s { position: absolute; top: -4px; bottom: -4px; left: 70%; width: 1px; background: var(--u-muted); }
+  .sf-num { font: 12px/1 var(--font-mono); color: var(--u-muted); }
+  .sf-flag { display: flex; align-items: center; gap: 8px; margin-top: 10px; padding: 8px 10px; border-radius: 8px; background: var(--u-fill); }
+  .sf-flag .ui-chip { flex: none; }
+  .sf-actions { display: flex; gap: 8px; margin-top: 12px; flex-wrap: wrap; }
+  .sf-row { display: flex; align-items: center; gap: 10px; padding: 8px 0; border-bottom: 1px solid var(--u-line); }
+  .sf-row:last-child { border-bottom: 0; }
+  .sf-row__main { flex: 1; min-width: 0; }
+  .sf-row__main b { display: block; font-weight: 500; }
+  .sf-row__main span { color: var(--u-muted); font-size: 12px; }
+  .sf-meter { width: 64px; height: 4px; border-radius: 99px; background: var(--u-fill); position: relative; flex: none; }
+  .sf-meter > i { position: absolute; inset: 0 auto 0 0; border-radius: 99px; background: var(--u-ink); }
+  .sf-draft { white-space: pre-line; padding: 10px 12px; border-radius: 8px; background: var(--u-fill); font-size: 13px; line-height: 1.6; }
+  .sf-select { display: inline-flex; align-items: center; justify-content: space-between; gap: 18px; min-width: 120px; padding: 6px 10px; border: 1px solid var(--u-border); border-radius: 8px; color: var(--u-muted); }
+  .sf-code { margin: 0; padding: 14px 16px; border-radius: 10px; background: var(--u-fill); font: 12.5px/1.65 var(--font-mono); white-space: pre; overflow: hidden; color: var(--u-ink); }
+  .sf-code .k { color: var(--u-muted); }
+  .sf-note { display: flex; align-items: center; gap: 6px; margin-top: 10px; font-size: 12px; color: var(--u-muted); }
+  .sf-card { width: 100%; border: 1px solid var(--u-border); border-radius: var(--u-r); box-shadow: var(--u-shadow); overflow: hidden; }
+  .sf-slack { display: grid; grid-template-columns: 32px minmax(0, 1fr); gap: 10px; }
+  .sf-slack__av { width: 32px; height: 32px; border-radius: 8px; background: var(--u-ink); }
+  .sf-slack ul { margin: 4px 0 0; padding-left: 18px; }
+  .sf-disabled { opacity: .45; }
+  #rules .panel { --p-h: 336px; }
+  .sf-flag { flex-wrap: wrap; white-space: normal; }
+  #accuracy .frame--split { aspect-ratio: 5 / 4; }
+  [data-moment="pinned-chapters"] .mo-pc__visual--lit { overflow: hidden; }
+  [data-moment="pinned-chapters"] .mo-pc__visual--lit > .sf-card { max-width: 460px; }
+  .mo-pc__visual .sf-head { padding: 8px 14px; }
+  .mo-pc__visual .sf-pad { padding: 10px 14px; }
+  .mo-pc__visual .sf-row { padding: 5px 0; }
+  .mo-pc__visual .sf-code { padding: 10px 12px; font-size: 11.5px; line-height: 1.5; }
+  @media (max-width: 1023px) { #accuracy .frame.frame--split, #stack .frame.frame--split { aspect-ratio: 16 / 9; } }
+  @media (min-width: 1024px) and (max-width: 1279px) { #rules .panel { --p-h: 288px; } #accuracy .frame.frame--split, #stack .frame.frame--split { aspect-ratio: 4 / 5; } }
+  @media (min-width: 640px) and (max-width: 1023px) {
+    #questions > .wrap > * { grid-column: span 6; }
+    #rules .panel { --p-h: 200px; }
+  }
+  @media (min-width: 640px) and (max-width: 1023px) and (min-height: 1100px) { #rules .panel { --p-h: 270px; } }
+  @media (max-width: 639px) {
+    #accuracy .frame.frame--split, #stack .frame.frame--split { aspect-ratio: 4 / 3; }
+    #rules .panel { --p-h: 180px; }
+    #rules .stage { --fade-h: 32px; }
+    #rules-h .muted { display: none; }
+    #pipeline .mo-pc__visual.mo-pc__visual--lit { aspect-ratio: 16 / 9; align-items: flex-start; padding: 12px; }
+    #pipeline.section { min-height: calc(2 * 100lvh); }
+    .app > .app__pane::after { display: none; }
+    #rules > .wrap { display: block; }
+    #rules > .wrap > .group > .grid, #rules > .wrap > .grid { margin-top: var(--s-4); }
+  }
+  @media (max-width: 359px) { .close--type .btn--xl { white-space: normal; height: auto; min-height: 48px; padding-block: var(--s-3); text-align: left; } }
+  @media (max-width: 639px) { .sf-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+
+  .sf-code { white-space: pre-wrap; }
+  .sf-eval { display: grid; grid-template-columns: minmax(0, 1fr) 72px 96px; align-items: center; gap: 12px; padding: 10px 0; border-bottom: 1px solid var(--u-line); }
+  .sf-eval--head { padding-top: 0; font-size: 12px; color: var(--u-muted); }
+  .sf-eval b { font-weight: 500; }
+  .sf-eval__ai { font: 500 15px/1 var(--font-mono); }
+  .sf-eval > :not(:first-child) { text-align: right; }
+  .sf-status-frame { padding: 24px; }
+  #stack .frame--split { aspect-ratio: 5 / 4; }
+  #stack .frame--split > .dg { height: 100%; }
+  .app > .app__pane::after { height: 40px; }  /* (accuracy is drawn as SupportFlow's own evaluation screen) */
+</style>
+</head>
+<body>
+<!-- type: software (an AI support workspace; site-kind software)
+     deal: hero split, nav nav-centre (dealt nav-cards: no photographs to show, re-dealt per sections.md 2), close close-type,
+     footer footer-dark, rhythm surface-pairs, buttons solid, mark stack, ground sky, palette white-mint-tiles
+     (a white ground and a mint accent: an interface people read for hours, with one fresh green for the one action),
+     type epilogue (Epilogue + JetBrains Mono), radius soft
+     effect: grain-gradient in the hero frame behind SupportFlow's own ticket view; card ground: none fitted (lit ground plain)
+     moments: pinned-chapters in #pipeline (the four steps a ticket goes through; one screen per step's picture).
+              One moment only: seven sections in main, under the eight that would take a second.
+     plan (screens at 1440x900):
+       hero 1 · workspace (app-frame) 1 · rules (features-2x2, g2) 2 · pipeline (pinned-chapters) 2 ·
+       accuracy (comparison table, surface band) 1 · stack (split, hub diagram, surface band) 1 · questions (faq) 1 · footer.closing 1 -->
+
+<header class="nav nav--centre">
+  <div class="wrap nav__bar">
+    <a class="skip-link" href="#top">Skip to content</a>
+    <a class="nav__logo" href="#top"><span class="mark" data-mark="stack" aria-hidden="true"></span>SupportFlow AI</a>
+    <nav class="nav__links" aria-label="Main">
+      <div class="nav__item"><a class="nav__link" href="#workspace">Workspace</a></div>
+      <div class="nav__item"><a class="nav__link" href="#rules">Rules</a></div>
+      <div class="nav__item"><a class="nav__link" href="#pipeline">Pipeline</a></div>
+      <div class="nav__item"><a class="nav__link" href="#accuracy">Accuracy</a></div>
+      <div class="nav__item"><a class="nav__link" href="#questions">Questions</a></div>
+    </nav>
+    <div class="nav__actions">
+      <a class="btn btn--primary" href="http://localhost:3000/">Try the live workspace</a>
+    </div>
+    <button class="nav__toggle" type="button" aria-expanded="false" aria-label="Menu">
+      <svg width="18" height="18" viewBox="0 0 18 18" aria-hidden="true"><path d="M2 5h14M2 13h14" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
+    </button>
+  </div>
+</header>
+
+<main id="top">
+  <section class="hero hero--split" data-enter aria-labelledby="hero-h">
+    <div class="wrap"><div class="hero-text grid hero__grid">
+      <div class="hero__text span-5">
+        <p class="hero__kicker"><span class="dot" aria-hidden="true"></span>Median classification time: 445 ms on Groq</p>
+        <h1 id="hero-h">AI ticket triage for B2B support teams</h1>
+        <p class="hero__lead">SupportFlow AI tags every ticket, drafts the reply from tickets you already solved, and waits for an agent to approve each step.</p>
+        <div class="btn-row">
+          <a class="btn btn--primary" href="http://localhost:3000/">Try the live workspace<svg class="m-arrow" viewBox="0 0 12 12" aria-hidden="true"><path class="m-arrow__stem" d="M1 6h8"/><path class="m-arrow__head" d="M4.5 2.5 8 6l-3.5 3.5"/></svg></a>
+          <a class="btn btn--secondary" href="https://github.com/jyotiradityabordoloi-cyber/Ai-workflow-automation">Read the source code</a>
+        </div>
+      </div>
+      <div class="hero__media frame span-6 start-7" data-visual data-fx="grain-gradient" data-fx-seed="11"
+           data-fx-palette='{"bg":"#c6d3df","surface":"#d6e0e9","ink":"#25303a","accent":"#3f6a92"}'>
+        <div class="stage stage--fade-br">
+          <div class="at-corner to-edge" style="--ax:56px;--ay:56px;--ax-sm:16px;--ay-sm:24px;width:560px">
+            <div class="ui sf sf-card" role="img" aria-label="SupportFlow's ticket view: a billing ticket classified P1, angry, confidence 0.96, flagged for a senior agent, with Accept and Override buttons">
+              <div class="sf-head"><span class="sf-id">SF-1042</span><span class="sf-subject">Charged twice this month</span><span class="ui-spacer"></span><span class="ui-chip">Needs review</span></div>
+              <div class="sf-pad">
+                <div class="sf-who"><span class="ui-avatar" data-tone="2">DW</span><span><b>Dorota Wilk</b> · Kettlewick Print · Pro plan</span></div>
+                <p class="sf-msg">I've been charged twice this month and I've sent 3 emails already. This is unacceptable.</p>
+                <div class="sf-box">
+                  <div class="sf-box__title">AI analysis <span class="sf-num">· gpt-oss-120b · 452 ms</span></div>
+                  <dl class="sf-grid">
+                    <div><dt>Category</dt><dd><span class="ui-chip">Billing</span></dd></div>
+                    <div><dt>Priority</dt><dd><span class="ui-chip ui-chip--ink">P1</span></dd></div>
+                    <div><dt>Sentiment</dt><dd><span class="ui-chip">Angry</span></dd></div>
+                    <div><dt>Confidence</dt><dd><span class="sf-num">0.96</span><div class="sf-bar"><i style="width:96%"></i><s></s></div></dd></div>
+                  </dl>
+                  <div class="sf-flag"><span class="ui-chip ui-chip--ink">Senior agent</span>Angry customer on a P1 ticket</div>
+                  <div class="sf-actions"><span class="ui-btn">Accept classification</span><span class="ui-btn ui-btn--ghost">Override</span></div>
+                </div>
+                <div class="sf-box">
+                  <div class="sf-box__title">Similar resolved tickets</div>
+                  <div class="sf-row"><span class="sf-id">KB-101</span><div class="sf-row__main"><b>Double charge on card</b></div><span class="sf-meter"><i style="width:71%"></i></span><span class="sf-num">0.71</span></div>
+                  <div class="sf-row"><span class="sf-id">KB-104</span><div class="sf-row__main"><b>Bought too many seats</b></div><span class="sf-meter"><i style="width:26%"></i></span><span class="sf-num">0.26</span></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div></div>
+  </section>
+
+  <section class="section" id="workspace" aria-labelledby="workspace-h">
+    <div class="wrap">
+      <div class="grid">
+        <div class="span-5"><h2 id="workspace-h">The agent workspace</h2></div>
+        <div class="span-6 start-7 stack-4"><p>Pick a ticket from the inbox and its category, priority, sentiment and confidence sit above the message. Nothing changes until an agent accepts or overrides it.</p><p><a class="link" href="#rules">See the safety rules</a></p></div>
+      </div>
+      <div class="ui app fill" role="img" aria-label="SupportFlow's inbox of ten tickets beside the open ticket SF-1040, a billing P1 flagged for a senior agent and a manager" data-ui-pause-host>
+        <div class="app__pane app__pane--list">
+          <div class="ui ui-panel ui-win" data-ui="window" data-open="Needs review" data-work="Classifying" data-done="Accepted">
+            <div class="ui-win__bar">
+              <span class="ui-dots" aria-hidden="true"><i></i><i></i><i></i></span>
+              <span class="ui-win__crumb">SupportFlow <i>/</i> <b>Inbox</b></span>
+              <span class="ui-spacer"></span>
+              <span class="ui-win__search" aria-hidden="true"><svg class="ui-icon" viewBox="0 0 16 16"><circle cx="7" cy="7" r="4.5"/><path d="m10.5 10.5 3 3"/></svg><span class="ui-win__ph">Search</span><span class="ui-kbd">/</span></span>
+            </div>
+            <div class="ui-win__body">
+              <nav class="ui-win__side" aria-hidden="true">
+                <span class="ui-win__nav is-on"><svg class="ui-icon" viewBox="0 0 16 16"><path d="M2.5 9h3l1 1.5h3l1-1.5h3"/><path d="M2.5 9 4 3.5h8L13.5 9v3.5h-11z"/></svg>Open<em>23</em></span>
+                <span class="ui-win__nav"><svg class="ui-icon" viewBox="0 0 16 16"><circle cx="8" cy="8" r="5.5"/><path d="M8 5v3l2 1.5"/></svg>Review<em>17</em></span>
+                <span class="ui-win__nav"><svg class="ui-icon" viewBox="0 0 16 16"><path d="m3.5 8.4 2.8 2.8 6.2-6.4"/></svg>Resolved</span>
+                <span class="ui-win__label">Flags</span>
+                <span class="ui-win__nav"><span class="ui-win__hash">#</span>Manual</span>
+                <span class="ui-win__nav"><span class="ui-win__hash">#</span>Senior</span>
+                <span class="ui-win__nav"><span class="ui-win__hash">#</span>Manager</span>
+              </nav>
+              <div class="ui-win__main">
+                <div class="ui-win__cols" aria-hidden="true"><span>Customer</span><span>Subject</span><span>Status</span><span>Age</span></div>
+                <ul class="ui-win__rows">
+                  <li class="ui-win__row" data-row><span class="ui-avatar" data-tone="2">DW</span><span class="ui-win__who">Dorota Wilk</span><span class="ui-win__sub">Final warning before chargeback</span><span class="ui-win__st is-you" data-st>Manager</span><span class="ui-win__age">22m</span></li>
+                  <li class="ui-win__row" data-row><span class="ui-avatar" data-tone="1">TK</span><span class="ui-win__who">Tomasz Kowal</span><span class="ui-win__sub">Dashboard returns 500 errors</span><span class="ui-win__st" data-st>Needs review</span><span class="ui-win__age">14m</span></li>
+                  <li class="ui-win__row" data-row><span class="ui-avatar" data-tone="2">DW</span><span class="ui-win__who">Dorota Wilk</span><span class="ui-win__sub">Charged twice this month</span><span class="ui-win__st" data-st>Needs review</span><span class="ui-win__age">6m</span></li>
+                  <li class="ui-win__row" data-row><span class="ui-avatar" data-tone="3">HL</span><span class="ui-win__who">Hanna Lind</span><span class="ui-win__sub">Schedule exports to Drive</span><span class="ui-win__st" data-st>Needs review</span><span class="ui-win__age">31m</span></li>
+                  <li class="ui-win__row" data-row><span class="ui-avatar" data-tone="4">LV</span><span class="ui-win__who">Lena Vogel</span><span class="ui-win__sub">Funktioniert nicht mehr</span><span class="ui-win__st is-you" data-st>Manual</span><span class="ui-win__age">40m</span></li>
+                  <li class="ui-win__row" data-row><span class="ui-avatar" data-tone="5">BS</span><span class="ui-win__who">Bilal Saeed</span><span class="ui-win__sub">Admin account compromised</span><span class="ui-win__st is-done" data-st>Accepted</span><span class="ui-win__age">1h</span></li>
+                  <li class="ui-win__row" data-row><span class="ui-avatar" data-tone="1">RC</span><span class="ui-win__who">Rafael Costa</span><span class="ui-win__sub">CSV import fails at row 1,200</span><span class="ui-win__st" data-st>Needs review</span><span class="ui-win__age">2h</span></li>
+                  <li class="ui-win__row" data-row><span class="ui-avatar" data-tone="3">YM</span><span class="ui-win__who">Yuki Mori</span><span class="ui-win__sub">Invoice with our VAT number</span><span class="ui-win__st is-done" data-st>Accepted</span><span class="ui-win__age">2h</span></li>
+                  <li class="ui-win__row" data-row><span class="ui-avatar" data-tone="4">OP</span><span class="ui-win__who">Owen Price</span><span class="ui-win__sub">Reset email never arrives</span><span class="ui-win__st" data-st>Needs review</span><span class="ui-win__age">3h</span></li>
+                  <li class="ui-win__row" data-row><span class="ui-avatar" data-tone="5">SN</span><span class="ui-win__who">Sara Nilsson</span><span class="ui-win__sub">Webhooks arrive 20 min late</span><span class="ui-win__st is-done" data-st>Accepted</span><span class="ui-win__age">3h</span></li>
+                </ul>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="app__pane app__pane--open">
+          <div class="ui ui-panel sf">
+            <div class="sf-head"><span class="sf-id">SF-1040</span><span class="sf-subject">Final warning before chargeback</span><span class="ui-spacer"></span><span class="ui-chip">Needs review</span><span class="ui-chip ui-chip--ink">Manager review</span></div>
+            <div class="sf-pad">
+              <div class="sf-who"><span class="ui-avatar" data-tone="2">DW</span><span><b>Dorota Wilk</b> · Kettlewick Print · email · 22 minutes ago</span></div>
+              <p class="sf-msg">If the duplicate charge isn't refunded by Friday I am filing a chargeback with my bank and handing this to my lawyer. Four emails and nobody has replied.</p>
+              <div class="sf-box">
+                <div class="sf-box__title">AI analysis <span class="sf-num">· openai/gpt-oss-120b · 438 ms · schema valid</span></div>
+                <dl class="sf-grid">
+                  <div><dt>Category</dt><dd><span class="ui-chip">Billing</span></dd></div>
+                  <div><dt>Priority</dt><dd><span class="ui-chip ui-chip--ink">P1</span></dd></div>
+                  <div><dt>Sentiment</dt><dd><span class="ui-chip">Angry</span></dd></div>
+                  <div><dt>Confidence</dt><dd><span class="sf-num">0.97</span><div class="sf-bar"><i style="width:97%"></i><s></s></div></dd></div>
+                </dl>
+                <p class="sf-msg">Customer threatens a chargeback and legal action over an unrefunded duplicate charge. Four emails unanswered.</p>
+                <div class="sf-flag"><span class="ui-chip">Senior agent</span>Angry customer on a P1 ticket</div>
+                <div class="sf-flag"><span class="ui-chip ui-chip--ink">Manager review</span>Mentions chargeback, lawyer, refund</div>
+                <div class="sf-actions"><span class="ui-btn">Accept classification</span><span class="ui-btn ui-btn--ghost">Override</span><span class="ui-btn ui-btn--ghost">Assign to senior agent</span></div>
+              </div>
+              <div class="sf-box">
+                <div class="sf-box__title">Draft reply <span class="sf-num">· grounded in KB-107</span></div>
+                <div class="sf-draft">Hi Dorota,
+Thank you for your message, and I'm sorry for the trouble. Your case is being reviewed by our team lead and we'll come back to you with an update shortly.</div>
+                <div class="sf-actions"><span class="ui-btn sf-disabled">Approve response</span><span class="ui-btn ui-btn--ghost">Reject</span><span class="sf-note">Waiting for a manager's sign-off</span></div>
+              </div>
+              <div class="sf-box">
+                <div class="sf-box__title">Audit trail</div>
+                <div class="sf-row"><div class="sf-row__main"><b>Safety flag raised</b><span>Mentions chargeback, lawyer, refund</span></div><span class="sf-num">01:12</span></div>
+                <div class="sf-row"><div class="sf-row__main"><b>Classified ticket</b><span>billing · P1 · confidence 0.97</span></div><span class="sf-num">01:12</span></div>
+                <div class="sf-row"><div class="sf-row__main"><b>Imported ticket</b><span>email</span></div><span class="sf-num">01:11</span></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="section g2" id="rules" aria-labelledby="rules-h">
+    <div class="wrap">
+      <div class="group">
+        <div class="section-head">
+          <h2 id="rules-h">Safety rules for every ticket. <span class="muted">Each one runs in code.</span></h2>
+        </div>
+        <div class="grid">
+          <article class="card card--row card--open span-6 m-nolift">
+            <h3>Routes risky tickets to people</h3>
+            <p>Low confidence goes to manual review, an angry P1 to a senior agent, a refund threat to a manager.</p>
+            <div class="panel">
+              <div class="stage stage--fade-b"><div class="at-rise fit" style="--fit-max:420px;--ax:max(24px, 50% - 210px);--ay:48px;--ay-sm:24px">
+                <div class="ui sf sf-card" role="img" aria-label="SupportFlow's review queues: four tickets in manual review, three with a senior agent, three waiting for a manager">
+                  <div class="sf-head"><span class="sf-subject">Review queues</span><span class="ui-spacer"></span><span class="sf-id">10 tickets</span></div>
+                  <div class="sf-pad">
+                    <div class="sf-row"><div class="sf-row__main"><b>Manual review</b><span>Confidence under 0.7 or unsupported text</span></div><span class="sf-num">4</span></div>
+                    <div class="sf-row"><div class="sf-row__main"><b>Senior agent</b><span>Sam Patel · angry and P1</span></div><span class="sf-num">3</span></div>
+                    <div class="sf-row"><div class="sf-row__main"><b>Manager review</b><span>Jordan Lee · legal or refund</span></div><span class="sf-num">3</span></div>
+                  </div>
+                </div>
+              </div></div>
+            </div>
+          </article>
+          <article class="card card--row card--open span-6 m-nolift">
+            <h3>Hides the AI guess on unsure tickets</h3>
+            <p>Under 0.7, under four words or not in English: the agent classifies it with no AI guess on screen.</p>
+            <div class="panel">
+              <div class="stage stage--fade-b"><div class="at-rise fit" style="--fit-max:420px;--ax:max(24px, 50% - 210px);--ay:48px;--ay-sm:24px">
+                <div class="ui sf sf-card" role="img" aria-label="A German ticket with the AI suggestion hidden and empty category and priority fields">
+                  <div class="sf-head"><span class="sf-id">SF-1047</span><span class="sf-subject">Funktioniert nicht mehr</span><span class="ui-spacer"></span><span class="ui-chip">Manual review</span></div>
+                  <div class="sf-pad">
+                    <div class="sf-flag">AI suggestion hidden: unsupported language (de), no model call</div>
+                    <dl class="sf-grid" style="grid-template-columns:repeat(2,minmax(0,1fr));margin-top:12px">
+                      <div><dt>Category</dt><dd><span class="sf-select">Choose<span aria-hidden="true">▾</span></span></dd></div>
+                      <div><dt>Priority</dt><dd><span class="sf-select">Choose<span aria-hidden="true">▾</span></span></dd></div>
+                    </dl>
+                    <div class="sf-actions"><span class="ui-btn sf-disabled">Set classification</span></div>
+                  </div>
+                </div>
+              </div></div>
+            </div>
+          </article>
+        </div>
+      </div>
+      <div class="grid">
+        <article class="card card--row card--open span-6 m-nolift">
+          <h3>Locks replies on refund tickets</h3>
+          <p>A ticket that says legal, lawyer, refund or chargeback keeps its reply locked until a manager signs off.</p>
+          <div class="panel">
+            <div class="stage stage--fade-b"><div class="at-corner" style="--ax:32px;--ay:40px;width:440px">
+              <div class="ui sf sf-card" role="img" aria-label="A drafted holding reply whose Approve button is locked until a manager signs off">
+                <div class="sf-head"><span class="sf-subject">Draft reply</span><span class="ui-spacer"></span><span class="ui-chip ui-chip--ink">Manager review</span></div>
+                <div class="sf-pad">
+                  <div class="sf-draft">Hi Dorota,
+Your case is being reviewed by our team lead and we'll come back to you with an update shortly.</div>
+                  <div class="sf-actions"><span class="ui-btn sf-disabled">Approve response</span><span class="ui-btn ui-btn--ghost">Record manager approval</span></div>
+                  <div class="sf-note">Approval opens once Jordan Lee (manager) signs off</div>
+                </div>
+              </div>
+            </div></div>
+          </div>
+        </article>
+        <article class="card card--row card--open span-6 m-nolift">
+          <h3>Never sends a ticket reply by itself</h3>
+          <p>Drafts and Slack briefs wait for a person. An escalation posts to #eng-escalations only after approval.</p>
+          <div class="panel">
+            <div class="stage stage--fade-b"><div class="at-rise fit" style="--fit-max:440px;--ax:max(24px, 50% - 220px);--ay:56px;--ay-sm:24px">
+              <div class="ui sf sf-card" role="img" aria-label="An engineering escalation brief for the blank PDF bug, waiting for approval before it posts to Slack">
+                <div class="sf-head"><span class="sf-id">ESC-7</span><span class="sf-subject">#eng-escalations</span><span class="ui-spacer"></span><span class="ui-chip">Awaiting approval</span></div>
+                <div class="sf-pad sf-slack">
+                  <span class="sf-slack__av" aria-hidden="true"></span>
+                  <div>
+                    <b>[P1] Escalation SF-1030</b>
+                    <p class="sf-msg" style="margin-top:4px">Scheduled reports email blank PDFs to the customer's clients since the latest release.</p>
+                    <ul><li>Confirmed for every scheduled report</li><li>Matches past incident KB-304</li></ul>
+                    <div class="sf-actions"><span class="ui-btn">Approve and post</span><span class="ui-btn ui-btn--ghost">Reject</span></div>
+                  </div>
+                </div>
+              </div>
+            </div></div>
+          </div>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <section class="section" id="pipeline" style="--h: 2" data-moment="pinned-chapters" aria-labelledby="pipeline-h">
+    <div class="wrap mo-pc__grid">
+      <div class="mo-pc__text">
+        <h2 id="pipeline-h">How a ticket moves through SupportFlow</h2>
+        <ol class="mo-pc__steps">
+          <li class="mo-pc__step">
+            <h3>Precheck the ticket</h3>
+            <p>Short, non-English or non-Latin text goes to manual review. The model never sees it.</p>
+            <figure class="mo-pc__visual mo-pc__visual--lit">
+              <div class="ui sf sf-card" role="img" aria-label="The precheck stops a German ticket before any model call">
+                <div class="sf-head"><span class="sf-subject">precheck</span><span class="ui-spacer"></span><span class="sf-id">SF-1047</span></div>
+                <div class="sf-pad">
+                  <div class="sf-row"><div class="sf-row__main"><b>Words</b></div><span class="sf-num">10</span></div>
+                  <div class="sf-row"><div class="sf-row__main"><b>Script</b></div><span class="sf-num">Latin</span></div>
+                  <div class="sf-row"><div class="sf-row__main"><b>Language</b></div><span class="sf-num">de</span></div>
+                  <div class="sf-flag"><span class="ui-chip ui-chip--ink">Manual review</span>No model call · 0 tokens</div>
+                </div>
+              </div>
+            </figure>
+          </li>
+          <li class="mo-pc__step">
+            <h3>Classify the ticket</h3>
+            <p>The model returns six fields. A reply that fails the schema is retried once.</p>
+            <figure class="mo-pc__visual mo-pc__visual--lit">
+              <div class="ui sf sf-card" role="img" aria-label="The model's classification as JSON, validated against the schema">
+                <div class="sf-head"><span class="sf-subject">classify</span><span class="ui-spacer"></span><span class="sf-id">SF-1042</span></div>
+                <div class="sf-pad">
+<pre class="sf-code">{
+  <span class="k">"language":</span>   "en",
+  <span class="k">"category":</span>   "billing",
+  <span class="k">"priority":</span>   "P1",
+  <span class="k">"sentiment":</span>  "angry",
+  <span class="k">"confidence":</span> 0.96,
+  <span class="k">"summary":</span>    "Duplicate charge, 3 emails…"
+}</pre>
+                  <div class="sf-note">Schema valid · 1 attempt · 452 ms</div>
+                </div>
+              </div>
+            </figure>
+          </li>
+          <li class="mo-pc__step">
+            <h3>Flag the ticket</h3>
+            <p>Code adds flags for low confidence, an angry P1, or legal and refund words.</p>
+            <figure class="mo-pc__visual mo-pc__visual--lit">
+              <div class="ui sf sf-card" role="img" aria-label="Two safety flags raised on the chargeback ticket, manual review not raised">
+                <div class="sf-head"><span class="sf-subject">apply_rules</span><span class="ui-spacer"></span><span class="sf-id">SF-1040</span></div>
+                <div class="sf-pad">
+                  <div class="sf-flag"><span class="ui-chip ui-chip--ink">Manager review</span>Mentions chargeback, lawyer, refund</div>
+                  <div class="sf-flag"><span class="ui-chip">Senior agent</span>Angry customer on a P1 ticket</div>
+                  <div class="sf-note">Manual review not raised: confidence 0.97 is above 0.70</div>
+                </div>
+              </div>
+            </figure>
+          </li>
+          <li class="mo-pc__step">
+            <h3>Hand the ticket over</h3>
+            <p>It waits as Needs review; every accept or override joins the audit trail.</p>
+            <figure class="mo-pc__visual mo-pc__visual--lit">
+              <div class="ui sf sf-card" role="img" aria-label="The audit trail after an agent accepted the classification">
+                <div class="sf-head"><span class="sf-subject">Audit trail</span><span class="ui-spacer"></span><span class="sf-id">SF-1042</span></div>
+                <div class="sf-pad">
+                  <div class="sf-row"><div class="sf-row__main"><b>Accepted AI classification</b><span>billing · P1 · Alex Rivera</span></div><span class="sf-num">01:14</span></div>
+                  <div class="sf-row"><div class="sf-row__main"><b>Safety flag raised</b><span>Angry customer on a P1 ticket</span></div><span class="sf-num">01:12</span></div>
+                  <div class="sf-row"><div class="sf-row__main"><b>Classified ticket</b><span>billing · P1 · confidence 0.96</span></div><span class="sf-num">01:12</span></div>
+                </div>
+              </div>
+            </figure>
+          </li>
+        </ol>
+      </div>
+      <div class="mo-pc__visuals frame"></div>
+    </div>
+  </section>
+
+  <section class="section ground-surface" id="accuracy" aria-labelledby="accuracy-h">
+    <div class="wrap">
+      <div class="grid">
+        <div class="span-5 stack-6">
+          <h2 id="accuracy-h">Accuracy on 30 labelled tickets</h2>
+          <p class="t-lead">Each score sits beside what you would get by always guessing the most common answer.</p>
+          <p>These are development-set scores: the rules were written while reading these tickets, so they run high. A held-out test set is scored once, before launch.</p>
+        </div>
+        <div class="frame frame--split frame--lit span-6 start-7">
+          <div class="stage stage--fade-b"><div class="at-rise fit" style="--fit-max:520px;--ax:max(24px, 50% - 260px);--ay:48px;--ay-sm:24px">
+            <div class="ui sf sf-card" role="img" aria-label="SupportFlow's evaluation screen. Category 100 percent against 26.7 for always guessing the most common answer; priority 90.0 against 46.7; sentiment 93.3 against 53.3; four of four vague or non-English tickets held back; model time 445 milliseconds median, 770 at p95; no failed model calls.">
+              <div class="sf-head"><span class="sf-subject">AI evaluation</span><span class="ui-spacer"></span><span class="ui-chip">Dev set · 30 tickets</span></div>
+              <div class="sf-pad">
+                <div class="sf-eval sf-eval--head"><span>Field</span><span>AI</span><span>Most common</span></div>
+                <div class="sf-eval"><b>Category</b><span class="sf-eval__ai">100%</span><span class="sf-num">26.7%</span></div>
+                <div class="sf-eval"><b>Priority</b><span class="sf-eval__ai">90.0%</span><span class="sf-num">46.7%</span></div>
+                <div class="sf-eval"><b>Sentiment</b><span class="sf-eval__ai">93.3%</span><span class="sf-num">53.3%</span></div>
+                <div class="sf-eval"><b>Held back for review</b><span class="sf-eval__ai">4 of 4</span><span class="sf-num">0</span></div>
+                <div class="sf-note">Model time 445 ms median, 770 ms p95 · 0 failed calls · openai/gpt-oss-120b</div>
+              </div>
+            </div>
+          </div></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="section ground-surface" id="stack" aria-labelledby="stack-h">
+    <div class="wrap">
+      <div class="grid">
+        <div class="span-5 stack-6">
+          <h2 id="stack-h">The ticket pipeline runs on a free LLM</h2>
+          <p class="t-lead">The classifier is a LangGraph graph behind FastAPI. Tickets, analyses and the audit trail live in PostgreSQL; the model is openai/gpt-oss-120b on Groq's free tier.</p>
+          <p>44 backend tests run without a key or Docker.</p>
+          
+        </div>
+        <div class="frame frame--split frame--lit span-6 start-7">
+          <div class="dg" data-dg-still data-diagram='{"layout":"hub","alt":"SupportFlow runs on Groq, PostgreSQL, FastAPI, Next.js, LangGraph, Docker and Slack.","center":{"label":"SupportFlow","icon":"ui:shield-check"},"spokes":[{"label":"Groq","icon":"groq"},{"label":"PostgreSQL","icon":"postgres"},{"label":"FastAPI","icon":"fastapi"},{"label":"Next.js","icon":"nextjs"},{"label":"LangGraph","icon":"langchain"},{"label":"Docker","icon":"docker"},{"label":"Slack","icon":"slack"}]}'></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="section g2m" id="questions" aria-labelledby="questions-h">
+    <div class="wrap grid">
+        <div class="span-5 stack-6">
+          <h2 id="questions-h">Questions</h2>
+          <p>What works today, what the model sees and where the ticket data lives.</p>
+          <div class="frame frame--lit sf-status-frame">
+            <div class="ui sf sf-card" role="img" aria-label="SupportFlow's module status: classification, safety rules and the audit trail are live on the backend; reply drafting and escalation run on mock data; Slack is simulated.">
+              <div class="sf-head"><span class="sf-subject">Modules</span><span class="ui-spacer"></span><span class="sf-id">step 2 of 5</span></div>
+              <div class="sf-pad">
+                <div class="sf-row"><div class="sf-row__main"><b>Classification and safety rules</b></div><span class="ui-chip ui-chip--ink">Live</span></div>
+                <div class="sf-row"><div class="sf-row__main"><b>Intake form and audit trail</b></div><span class="ui-chip ui-chip--ink">Live</span></div>
+                <div class="sf-row"><div class="sf-row__main"><b>Reply drafting</b></div><span class="ui-chip">Mock data</span></div>
+                <div class="sf-row"><div class="sf-row__main"><b>Escalation briefs</b></div><span class="ui-chip">Mock data</span></div>
+                <div class="sf-row"><div class="sf-row__main"><b>Slack posting</b></div><span class="ui-chip">Simulated</span></div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="faq span-6 start-7">
+          <div class="faq__item"><h3>What works in SupportFlow today?</h3><p>Classification, the safety rules, the intake form and the audit trail run on the backend. Drafting and escalation still use mock data.</p></div>
+          <div class="faq__item"><h3>Does SupportFlow ever email a customer?</h3><p>No. Drafts wait for an agent to edit and approve them, and Slack stays simulated until credentials are added.</p></div>
+          <div class="faq__item"><h3>Which ticket languages are supported?</h3><p>English only. Other languages and non-Latin scripts go to manual review before the model sees them.</p></div>
+          <div class="faq__item"><h3>Where does ticket text go?</h3><p>Into your PostgreSQL, and to the model provider for classification. It is never written to the server logs.</p></div>
+        </div>
+    </div>
+  </section>
+</main>
+
+<footer class="footer closing footer--dark ground-inverse" id="contact" aria-labelledby="close-h">
+  <div class="wrap">
+    <div class="closing__cta close--type">
+      <div class="section-head">
+        <h2 id="close-h">Open the workspace with 28 seeded tickets</h2>
+        <p>Runs locally with Docker, a free Groq key and one seed command.</p>
+      </div>
+      <a class="btn btn--primary btn--xl btn--wide" href="http://localhost:3000/">Try the live workspace<svg class="m-arrow" viewBox="0 0 12 12" aria-hidden="true"><path class="m-arrow__stem" d="M1 6h8"/><path class="m-arrow__head" d="M4.5 2.5 8 6l-3.5 3.5"/></svg></a>
+    </div>
+    <div class="closing__links">
+      <div class="grid">
+        <div class="span-4 stack-4">
+          <a class="nav__logo footer__name" href="#top"><span class="mark" data-mark="stack" aria-hidden="true"></span>SupportFlow AI</a>
+        </div>
+        <div class="span-2 footer__col"><h3>Product</h3><ul><li><a href="#workspace">Workspace</a></li><li><a href="#rules">Rules</a></li></ul></div>
+        <div class="span-2 footer__col"><h3>How it works</h3><ul><li><a href="#pipeline">Pipeline</a></li><li><a href="#stack">Stack</a></li></ul></div>
+        <div class="span-2 footer__col"><h3>Proof</h3><ul><li><a href="#accuracy">Accuracy</a></li><li><a href="#questions">Questions</a></li></ul></div>
+        <div class="span-2 footer__col"><h3>Code</h3><ul><li><a href="https://github.com/jyotiradityabordoloi-cyber/Ai-workflow-automation">Read the source code</a></li></ul></div>
+      </div>
+      <div class="footer__legal">
+        <span>&copy; 2026 SupportFlow AI, a portfolio project</span>
+        <div class="socials"></div>
+        <span class="credits">Product names and logos are trademarks of their owners</span>
+      </div>
+    </div>
+  </div>
+</footer>
+
+<nav class="actionbar" aria-label="Quick actions">
+  <a class="btn btn--primary" href="http://localhost:3000/">Try the live workspace</a>
+</nav>
+
+<script type="module" src="assets/system.js"></script>
+<script type="module" src="assets/motion/motion.js"></script>
+<script type="module" src="assets/layout/layout.js"></script>
+<script type="module" src="assets/diagrams/mount.js"></script>
+</body>
+</html>

@@ -32,4 +32,6 @@ export function dateTime(iso: string): string {
   return new Date(iso).toLocaleString(undefined, { month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" });
 }
 
-export const initials = (name: string) => name.split(/\s+/).map((p) => p[0]).slice(0, 2).join("").toUpperCase();
+export const subjectOf = (t: { subject: string }) => t.subject.trim() || "(no subject)";
+
+export const initials =(name: string) => name.split(/\s+/).map((p) => p[0]).slice(0, 2).join("").toUpperCase();

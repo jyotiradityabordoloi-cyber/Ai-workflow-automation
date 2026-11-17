@@ -1,9 +1,10 @@
 "use client";
 
 import { FlaskConical } from "lucide-react";
+import { EvaluationResults } from "@/components/evaluation-results";
 import { PageHeader } from "@/components/shell";
 import { Card, CardHeader, Stat } from "@/components/ui";
-import { useWorkspace } from "@/lib/api";
+import { api, useWorkspace } from "@/lib/api";
 import { CONFIDENCE_THRESHOLD, hasFlag } from "@/lib/rules";
 
 const PLANNED = [
@@ -32,16 +33,20 @@ export default function EvaluationPage() {
     <>
       <PageHeader title="AI evaluation" subtitle="Accuracy is only shown after it has been measured." />
       <div className="space-y-4 p-4 md:p-6">
-        <Card className="flex items-start gap-3 p-4">
-          <FlaskConical className="mt-0.5 size-5 text-accent" />
-          <div className="text-[13px]">
-            <p className="font-medium">No evaluation has been run yet.</p>
-            <p className="mt-0.5 text-muted">
-              The classifier isn&apos;t connected (frontend step 1, mock data). Accuracy will appear here once the evaluation suite has run
-              against a labelled, held-out test set. Until then this page shows only how agents treat AI output in this workspace.
-            </p>
-          </div>
-        </Card>
+        <EvaluationResults fallback={
+          <Card className="flex items-start gap-3 p-4">
+            <FlaskConical className="mt-0.5 size-5 text-accent" />
+            <div className="text-[13px]">
+              <p className="font-medium">No evaluation has been run yet.</p>
+              <p className="mt-0.5 text-muted">
+                {api.mode === "live"
+                  ? <>Run <code className="font-mono">python -m eval.run_eval</code> in <code className="font-mono">supportflow/backend</code> to measure the classifier on a labelled dataset.</>
+                  : "Mock mode has no classifier to measure."}{" "}
+                Until then this page only shows how agents treat AI output in this workspace.
+              </p>
+            </div>
+          </Card>
+        } />
 
         <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
           <Stat label="Tickets analysed" value={analysed.length} />
@@ -52,7 +57,7 @@ export default function EvaluationPage() {
 
         <div className="grid gap-4 lg:grid-cols-2">
           <Card>
-            <CardHeader title="Confidence distribution" hint="Mock-data values; the bar marks the manual-review threshold" />
+            <CardHeader title="Confidence distribution" hint={`${api.mode === "live" ? "Live model output" : "Mock-data values"} in this workspace; orange = below the manual-review threshold`} />
             <div className="flex h-44 items-end gap-1.5 p-4">
               {buckets.map((b) => (
                 <div key={b.lo} className="flex flex-1 flex-col items-center gap-1">

@@ -5,7 +5,7 @@ import Link from "next/link";
 import { Avatar, PageHeader } from "@/components/shell";
 import { Card, CardHeader, FlagBadge, PriorityBadge, Stat } from "@/components/ui";
 import { useWorkspace } from "@/lib/api";
-import { CATEGORIES, CATEGORY_LABEL, PRIORITIES, timeAgo } from "@/lib/format";
+import { CATEGORIES, CATEGORY_LABEL, PRIORITIES, timeAgo, subjectOf } from "@/lib/format";
 import type { Ticket } from "@/lib/types";
 
 const open = (t: Ticket) => t.status !== "resolved";
@@ -67,7 +67,7 @@ export default function Overview() {
                   <Link href={`/tickets/${t.id}`} className="flex items-center gap-3 px-4 py-2.5 hover:bg-hover">
                     {pri(t) ? <PriorityBadge p={pri(t)!} /> : <span className="w-[26px] text-center text-[11px] text-faint">—</span>}
                     <div className="min-w-0 flex-1">
-                      <p className="truncate text-[13px] font-medium">{t.subject}</p>
+                      <p className="truncate text-[13px] font-medium">{subjectOf(t)}</p>
                       <p className="truncate text-xs text-muted">{t.customer.company} · {t.id} · {timeAgo(t.createdAt)}</p>
                     </div>
                     <div className="hidden gap-1 sm:flex">

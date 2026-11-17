@@ -1,10 +1,11 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
+import { Epilogue, JetBrains_Mono } from "next/font/google";
 import { AppShell } from "@/components/shell";
 import "./globals.css";
 
-const geistSans = Geist({ variable: "--font-geist-sans", subsets: ["latin"] });
-const geistMono = Geist_Mono({ variable: "--font-geist-mono", subsets: ["latin"] });
+// The same pairing as the landing page (supportflow/site): Epilogue for text and headings, JetBrains Mono for IDs and figures.
+const epilogue = Epilogue({ variable: "--font-epilogue", subsets: ["latin"], weight: ["400", "500", "600"] });
+const jetbrains = JetBrains_Mono({ variable: "--font-jetbrains", subsets: ["latin"], weight: ["400", "500"] });
 
 export const metadata: Metadata = {
   title: "SupportFlow AI",
@@ -14,7 +15,7 @@ export const metadata: Metadata = {
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   return (
     <html lang="en">
-      <body className={`${geistSans.variable} ${geistMono.variable} font-sans antialiased`}>
+      <body className={`${epilogue.variable} ${jetbrains.variable} font-sans antialiased`}>
         <AppShell>{children}</AppShell>
       </body>
     </html>

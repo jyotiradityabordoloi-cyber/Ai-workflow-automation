@@ -1,0 +1,575 @@
+{
+  "run_at": "2026-11-16T20:01:55+00:00",
+  "dataset": "dev.jsonl",
+  "split": "dev",
+  "n": 30,
+  "model": "openai/gpt-oss-120b",
+  "fields": {
+    "category": {
+      "accuracy_pct": 100.0,
+      "majority_baseline_pct": 26.7,
+      "majority_label": "bug",
+      "errors": {},
+      "macro_f1": 100.0
+    },
+    "priority": {
+      "accuracy_pct": 90.0,
+      "majority_baseline_pct": 46.7,
+      "majority_label": "P2",
+      "errors": {
+        "P3->P2": 2,
+        "P2->P3": 1
+      }
+    },
+    "sentiment": {
+      "accuracy_pct": 93.3,
+      "majority_baseline_pct": 53.3,
+      "majority_label": "neutral",
+      "errors": {
+        "frustrated->neutral": 2
+      }
+    }
+  },
+  "manual_review": {
+    "expected": 4,
+    "caught": 4,
+    "recall_pct": 100.0,
+    "extra": [],
+    "precision_pct": 100.0
+  },
+  "calibration": {
+    "threshold": 0.7,
+    "above_n": 26,
+    "above_accuracy_pct": 100.0,
+    "below_n": 4,
+    "below_accuracy_pct": 100.0,
+    "confidence_values": {
+      "0.96": 19,
+      "0.97": 6,
+      "0.0": 4,
+      "0.9": 1
+    }
+  },
+  "latency_ms": {
+    "p50": 444.5,
+    "p95": 770
+  },
+  "llm_failures": 0,
+  "wall_clock_s": 242.5,
+  "predictions": [
+    {
+      "id": "T-5001",
+      "label": {
+        "category": "billing",
+        "priority": "P1",
+        "sentiment": "angry"
+      },
+      "pred": {
+        "category": "billing",
+        "priority": "P1",
+        "sentiment": "angry"
+      },
+      "confidence": 0.96,
+      "manual": false,
+      "error": null,
+      "latency_ms": 405
+    },
+    {
+      "id": "T-5002",
+      "label": {
+        "category": "bug",
+        "priority": "P1",
+        "sentiment": "frustrated"
+      },
+      "pred": {
+        "category": "bug",
+        "priority": "P1",
+        "sentiment": "frustrated"
+      },
+      "confidence": 0.96,
+      "manual": false,
+      "error": null,
+      "latency_ms": 440
+    },
+    {
+      "id": "T-5003",
+      "label": {
+        "category": "feature_request",
+        "priority": "P3",
+        "sentiment": "positive"
+      },
+      "pred": {
+        "category": "feature_request",
+        "priority": "P3",
+        "sentiment": "positive"
+      },
+      "confidence": 0.97,
+      "manual": false,
+      "error": null,
+      "latency_ms": 360
+    },
+    {
+      "id": "T-5004",
+      "label": {
+        "category": "account",
+        "priority": "P2",
+        "sentiment": "neutral"
+      },
+      "pred": {
+        "category": "account",
+        "priority": "P2",
+        "sentiment": "neutral"
+      },
+      "confidence": 0.97,
+      "manual": false,
+      "error": null,
+      "latency_ms": 374
+    },
+    {
+      "id": "T-5005",
+      "label": {
+        "category": "bug",
+        "priority": "P2",
+        "sentiment": "frustrated"
+      },
+      "pred": {
+        "category": "bug",
+        "priority": "P2",
+        "sentiment": "neutral"
+      },
+      "confidence": 0.96,
+      "manual": false,
+      "error": null,
+      "latency_ms": 407
+    },
+    {
+      "id": "T-5006",
+      "label": {
+        "category": "billing",
+        "priority": "P2",
+        "sentiment": "neutral"
+      },
+      "pred": {
+        "category": "billing",
+        "priority": "P2",
+        "sentiment": "neutral"
+      },
+      "confidence": 0.97,
+      "manual": false,
+      "error": null,
+      "latency_ms": 325
+    },
+    {
+      "id": "T-5007",
+      "label": {
+        "category": "billing",
+        "priority": "P1",
+        "sentiment": "angry"
+      },
+      "pred": {
+        "category": "billing",
+        "priority": "P1",
+        "sentiment": "angry"
+      },
+      "confidence": 0.96,
+      "manual": false,
+      "error": null,
+      "latency_ms": 497
+    },
+    {
+      "id": "T-5008",
+      "label": {
+        "category": "other",
+        "priority": "P2",
+        "sentiment": "neutral",
+        "expect_manual": true
+      },
+      "pred": {
+        "category": "other",
+        "priority": "P2",
+        "sentiment": "neutral"
+      },
+      "confidence": 0.0,
+      "manual": true,
+      "error": null,
+      "latency_ms": 0
+    },
+    {
+      "id": "T-5009",
+      "label": {
+        "category": "other",
+        "priority": "P2",
+        "sentiment": "neutral",
+        "expect_manual": true
+      },
+      "pred": {
+        "category": "other",
+        "priority": "P2",
+        "sentiment": "neutral"
+      },
+      "confidence": 0.0,
+      "manual": true,
+      "error": null,
+      "latency_ms": 0
+    },
+    {
+      "id": "T-5010",
+      "label": {
+        "category": "other",
+        "priority": "P2",
+        "sentiment": "neutral",
+        "expect_manual": true
+      },
+      "pred": {
+        "category": "other",
+        "priority": "P2",
+        "sentiment": "neutral"
+      },
+      "confidence": 0.0,
+      "manual": true,
+      "error": null,
+      "latency_ms": 0
+    },
+    {
+      "id": "T-5011",
+      "label": {
+        "category": "account",
+        "priority": "P1",
+        "sentiment": "frustrated"
+      },
+      "pred": {
+        "category": "account",
+        "priority": "P1",
+        "sentiment": "frustrated"
+      },
+      "confidence": 0.96,
+      "manual": false,
+      "error": null,
+      "latency_ms": 449
+    },
+    {
+      "id": "T-5012",
+      "label": {
+        "category": "bug",
+        "priority": "P3",
+        "sentiment": "neutral"
+      },
+      "pred": {
+        "category": "bug",
+        "priority": "P3",
+        "sentiment": "neutral"
+      },
+      "confidence": 0.96,
+      "manual": false,
+      "error": null,
+      "latency_ms": 341
+    },
+    {
+      "id": "T-5013",
+      "label": {
+        "category": "feature_request",
+        "priority": "P3",
+        "sentiment": "neutral"
+      },
+      "pred": {
+        "category": "feature_request",
+        "priority": "P3",
+        "sentiment": "neutral"
+      },
+      "confidence": 0.96,
+      "manual": false,
+      "error": null,
+      "latency_ms": 470
+    },
+    {
+      "id": "T-5014",
+      "label": {
+        "category": "billing",
+        "priority": "P3",
+        "sentiment": "positive"
+      },
+      "pred": {
+        "category": "billing",
+        "priority": "P3",
+        "sentiment": "positive"
+      },
+      "confidence": 0.97,
+      "manual": false,
+      "error": null,
+      "latency_ms": 715
+    },
+    {
+      "id": "T-5015",
+      "label": {
+        "category": "account",
+        "priority": "P2",
+        "sentiment": "frustrated"
+      },
+      "pred": {
+        "category": "account",
+        "priority": "P2",
+        "sentiment": "frustrated"
+      },
+      "confidence": 0.96,
+      "manual": false,
+      "error": null,
+      "latency_ms": 404
+    },
+    {
+      "id": "T-5016",
+      "label": {
+        "category": "bug",
+        "priority": "P2",
+        "sentiment": "neutral"
+      },
+      "pred": {
+        "category": "bug",
+        "priority": "P3",
+        "sentiment": "neutral"
+      },
+      "confidence": 0.96,
+      "manual": false,
+      "error": null,
+      "latency_ms": 506
+    },
+    {
+      "id": "T-5017",
+      "label": {
+        "category": "billing",
+        "priority": "P2",
+        "sentiment": "frustrated"
+      },
+      "pred": {
+        "category": "billing",
+        "priority": "P2",
+        "sentiment": "frustrated"
+      },
+      "confidence": 0.96,
+      "manual": false,
+      "error": null,
+      "latency_ms": 782
+    },
+    {
+      "id": "T-5018",
+      "label": {
+        "category": "other",
+        "priority": "P3",
+        "sentiment": "neutral"
+      },
+      "pred": {
+        "category": "other",
+        "priority": "P2",
+        "sentiment": "neutral"
+      },
+      "confidence": 0.96,
+      "manual": false,
+      "error": null,
+      "latency_ms": 369
+    },
+    {
+      "id": "T-5019",
+      "label": {
+        "category": "feature_request",
+        "priority": "P3",
+        "sentiment": "frustrated"
+      },
+      "pred": {
+        "category": "feature_request",
+        "priority": "P3",
+        "sentiment": "frustrated"
+      },
+      "confidence": 0.96,
+      "manual": false,
+      "error": null,
+      "latency_ms": 373
+    },
+    {
+      "id": "T-5020",
+      "label": {
+        "category": "bug",
+        "priority": "P1",
+        "sentiment": "angry"
+      },
+      "pred": {
+        "category": "bug",
+        "priority": "P1",
+        "sentiment": "angry"
+      },
+      "confidence": 0.96,
+      "manual": false,
+      "error": null,
+      "latency_ms": 350
+    },
+    {
+      "id": "T-5021",
+      "label": {
+        "category": "account",
+        "priority": "P3",
+        "sentiment": "neutral"
+      },
+      "pred": {
+        "category": "account",
+        "priority": "P3",
+        "sentiment": "neutral"
+      },
+      "confidence": 0.96,
+      "manual": false,
+      "error": null,
+      "latency_ms": 345
+    },
+    {
+      "id": "T-5022",
+      "label": {
+        "category": "billing",
+        "priority": "P2",
+        "sentiment": "neutral"
+      },
+      "pred": {
+        "category": "billing",
+        "priority": "P2",
+        "sentiment": "neutral"
+      },
+      "confidence": 0.97,
+      "manual": false,
+      "error": null,
+      "latency_ms": 467
+    },
+    {
+      "id": "T-5023",
+      "label": {
+        "category": "bug",
+        "priority": "P2",
+        "sentiment": "frustrated"
+      },
+      "pred": {
+        "category": "bug",
+        "priority": "P2",
+        "sentiment": "neutral"
+      },
+      "confidence": 0.96,
+      "manual": false,
+      "error": null,
+      "latency_ms": 404
+    },
+    {
+      "id": "T-5024",
+      "label": {
+        "category": "account",
+        "priority": "P2",
+        "sentiment": "neutral"
+      },
+      "pred": {
+        "category": "account",
+        "priority": "P2",
+        "sentiment": "neutral"
+      },
+      "confidence": 0.97,
+      "manual": false,
+      "error": null,
+      "latency_ms": 490
+    },
+    {
+      "id": "T-5025",
+      "label": {
+        "category": "feature_request",
+        "priority": "P3",
+        "sentiment": "positive"
+      },
+      "pred": {
+        "category": "feature_request",
+        "priority": "P3",
+        "sentiment": "positive"
+      },
+      "confidence": 0.96,
+      "manual": false,
+      "error": null,
+      "latency_ms": 462
+    },
+    {
+      "id": "T-5026",
+      "label": {
+        "category": "bug",
+        "priority": "P1",
+        "sentiment": "frustrated"
+      },
+      "pred": {
+        "category": "bug",
+        "priority": "P1",
+        "sentiment": "frustrated"
+      },
+      "confidence": 0.96,
+      "manual": false,
+      "error": null,
+      "latency_ms": 770
+    },
+    {
+      "id": "T-5027",
+      "label": {
+        "category": "billing",
+        "priority": "P3",
+        "sentiment": "neutral"
+      },
+      "pred": {
+        "category": "billing",
+        "priority": "P3",
+        "sentiment": "neutral"
+      },
+      "confidence": 0.96,
+      "manual": false,
+      "error": null,
+      "latency_ms": 710
+    },
+    {
+      "id": "T-5028",
+      "label": {
+        "category": "other",
+        "priority": "P2",
+        "sentiment": "neutral",
+        "expect_manual": true
+      },
+      "pred": {
+        "category": "other",
+        "priority": "P2",
+        "sentiment": "neutral"
+      },
+      "confidence": 0.0,
+      "manual": true,
+      "error": null,
+      "latency_ms": 0
+    },
+    {
+      "id": "T-5029",
+      "label": {
+        "category": "bug",
+        "priority": "P3",
+        "sentiment": "neutral"
+      },
+      "pred": {
+        "category": "bug",
+        "priority": "P2",
+        "sentiment": "neutral"
+      },
+      "confidence": 0.96,
+      "manual": false,
+      "error": null,
+      "latency_ms": 500
+    },
+    {
+      "id": "T-5030",
+      "label": {
+        "category": "account",
+        "priority": "P2",
+        "sentiment": "neutral"
+      },
+      "pred": {
+        "category": "account",
+        "priority": "P2",
+        "sentiment": "neutral"
+      },
+      "confidence": 0.9,
+      "manual": false,
+      "error": null,
+      "latency_ms": 987
+    }
+  ]
+}

@@ -8,12 +8,13 @@ import { CONFIDENCE_THRESHOLD } from "@/lib/rules";
 import type { Category, FlagType, Priority, Sentiment } from "@/lib/types";
 
 export function Card({ className, children }: { className?: string; children: ReactNode }) {
-  return <div className={clsx("rounded-xl border border-line bg-surface", className)}>{children}</div>;
+  // Minimal surfaces: a faint edge and space do the separating; no lines inside the card.
+  return <div className={clsx("rounded-2xl border border-line/60 bg-surface", className)}>{children}</div>;
 }
 
 export function CardHeader({ title, hint, right }: { title: ReactNode; hint?: ReactNode; right?: ReactNode }) {
   return (
-    <div className="flex items-start justify-between gap-3 border-b border-line px-4 py-3">
+    <div className="flex items-start justify-between gap-3 px-4 pt-4 pb-1">
       <div>
         <h2 className="text-[13px] font-semibold">{title}</h2>
         {hint && <p className="mt-0.5 text-xs text-muted">{hint}</p>}
@@ -74,7 +75,7 @@ export function ConfidenceBar({ value, compact }: { value: number; compact?: boo
 
 type BtnVariant = "primary" | "secondary" | "ghost" | "danger";
 const BTN: Record<BtnVariant, string> = {
-  primary: "bg-accent text-white hover:brightness-110 border-transparent",
+  primary: "bg-accent text-accent-ink hover:brightness-125 border-transparent",
   secondary: "bg-surface text-ink border-line hover:bg-hover",
   ghost: "bg-transparent text-muted border-transparent hover:bg-hover hover:text-ink",
   danger: "bg-surface text-bad border-line hover:bg-bad-soft",
@@ -87,7 +88,8 @@ export function Button({ variant = "secondary", loading, className, children, di
       {...rest}
       disabled={disabled || loading}
       className={clsx(
-        "inline-flex h-8 shrink-0 items-center justify-center gap-1.5 whitespace-nowrap rounded-lg border px-3 text-[13px] font-medium transition active:scale-[.98] disabled:cursor-not-allowed disabled:opacity-50 disabled:active:scale-100",
+        // feedback lives on the press and is instant (no hover lift): Apple-style responsiveness
+        "inline-flex h-8 shrink-0 items-center justify-center gap-1.5 whitespace-nowrap rounded-lg border px-3 text-[13px] font-medium transition-[background-color,transform,filter] duration-100 ease-out active:scale-[.97] disabled:cursor-not-allowed disabled:opacity-50 disabled:active:scale-100",
         BTN[variant], className)}
     >
       {loading && <Loader2 className="size-3.5 animate-spin" />}
