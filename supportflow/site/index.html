@@ -156,6 +156,22 @@
   #stack .frame--split { aspect-ratio: 5 / 4; }
   #stack .frame--split > .dg { height: 100%; }
   .app > .app__pane::after { height: 40px; }  /* (accuracy is drawn as SupportFlow's own evaluation screen) */
+
+  /* A wide but short window (a browser side pane, a zoomed laptop, about 600px tall or less) cannot hold a
+     section's content in exactly one or two screens, and the fixed height then laid it over the next section
+     (rule cards over the next row's titles, the questions under the footer). From 1280 up, as the kit already
+     does from 640 to 1279: a section keeps at least its screens and grows rather than overlap. A two-screen
+     section's halves are at least their content too, so the first group never runs into the second. */
+  @media (min-width: 1280px) {
+    main > :is(section, .section):not(.hero, .section--hero), footer.closing {
+      height: auto; min-height: calc(var(--h, 1) * 100vh); min-height: calc(var(--h, 1) * 100svh);
+    }
+    :where(main > :is(section, .section):not(.hero, .section--hero), footer.closing) { display: flex; flex-direction: column; }
+    main > :is(section, .section):not(.hero, .section--hero) > :is(.wrap, .container), footer.closing > .wrap { flex: 1 0 auto; height: auto; min-height: 0; }
+  }
+  @media (min-width: 640px) {
+    main > .section.g2 > .wrap { grid-template-rows: minmax(min-content, 1fr) minmax(min-content, 1fr); }
+  }
 </style>
 </head>
 <body>
