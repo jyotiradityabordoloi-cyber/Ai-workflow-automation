@@ -6,3 +6,6 @@ data/real/
 config/tickets_servicedesk.json
 config/baseline_servicedesk.json
 .claude/
+.venv/
+supportflow/site/.taste-skill/
+supportflow/site/shots/

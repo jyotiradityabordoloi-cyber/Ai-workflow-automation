@@ -1,0 +1,20 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: supportflow-postgres
+    environment:
+      POSTGRES_USER: supportflow
+      POSTGRES_PASSWORD: supportflow   # local development only
+      POSTGRES_DB: supportflow
+    ports:
+      - "5433:5432"
+    volumes:
+      - supportflow-pg:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U supportflow -d supportflow"]
+      interval: 3s
+      timeout: 3s
+      retries: 20
+
+volumes:
+  supportflow-pg:
