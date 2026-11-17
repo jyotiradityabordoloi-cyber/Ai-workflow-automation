@@ -8,3 +8,4 @@ pydantic-settings>=2.11
 httpx>=0.28
 langgraph>=1.0
 chromadb>=1.5  # semantic memory (vector store + local ONNX embeddings)
+qdrant-client>=1.15  # semantic memory on Qdrant (deployment; Qdrant Cloud Inference embeds server-side)

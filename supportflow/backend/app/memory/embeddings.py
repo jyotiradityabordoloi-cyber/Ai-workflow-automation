@@ -60,6 +60,7 @@ class OnnxMiniLM:
     The model (~80 MB) is downloaded on first use into ~/.cache/chroma and reused afterwards."""
 
     name = "minilm"
+    dim = 384
 
     def __init__(self) -> None:
         from chromadb.utils.embedding_functions import DefaultEmbeddingFunction
@@ -75,4 +76,4 @@ def build_embedder(provider: str) -> Embedder:
         return HashEmbedder()
     if provider == "onnx":
         return OnnxMiniLM()
-    raise ValueError(f"Unknown embedding provider {provider!r} (use 'onnx' or 'hash')")
+    raise ValueError(f"Unknown embedding provider {provider!r} (use 'onnx', 'hash', or 'qdrant-cloud' with MEMORY_BACKEND=qdrant)")

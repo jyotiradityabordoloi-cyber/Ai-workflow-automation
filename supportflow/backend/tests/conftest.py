@@ -28,10 +28,16 @@ def chroma_client():
     return chromadb.EphemeralClient(settings=ChromaSettings(anonymized_telemetry=False))
 
 
-@pytest.fixture()
-def memory(chroma_client):
-    """Semantic memory in RAM with the offline hash embedder; a fresh namespace per test keeps tests independent."""
-    m = SemanticMemory(chroma_client, HashEmbedder(), namespace=f"t{uuid.uuid4().hex[:10]}_")
+@pytest.fixture(params=["chroma", "qdrant"])
+def memory(request, chroma_client):
+    """Semantic memory in RAM with the offline hash embedder, on both vector stores: every memory test runs against
+    ChromaDB (local development) and Qdrant (deployment). Fresh collections per test keep tests independent."""
+    if request.param == "chroma":
+        m = SemanticMemory.chroma(chroma_client, HashEmbedder(), namespace=f"t{uuid.uuid4().hex[:10]}_")
+    else:
+        from qdrant_client import QdrantClient
+
+        m = SemanticMemory.qdrant(QdrantClient(":memory:"), HashEmbedder())
     seed_knowledge(m)
     return m
 

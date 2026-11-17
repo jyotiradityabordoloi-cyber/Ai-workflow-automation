@@ -56,6 +56,13 @@ def _has_flag(a: Analysis | None, flag: str) -> bool:
     return bool(a and any(f.get("type") == flag for f in a.flags))
 
 
+def is_correction(a: Analysis | None, category: str | None, priority: str | None) -> bool:
+    """An agent's classification that differs from a *real* model guess (not the precheck or outage fallback the
+    agent was told to fill in). Only these are learned as corrections."""
+    real_guess = bool(a and not a.error and a.attempts > 0 and a.summary != FALLBACK_SUMMARY)
+    return bool(a and real_guess and category and priority and (a.category, a.priority) != (category, priority))
+
+
 def _audit(db: Session, ticket_id: str, actor: str, action: str, detail: str | None = None) -> None:
     db.add(AuditEvent(ticket_id=ticket_id, actor=actor, action=action, detail=detail))
 
@@ -170,9 +177,7 @@ def decide_classification(db: Session, ticket_id: str, d: DecisionIn, actor: Act
     t.assignee = t.assignee or actor.name
     _audit(db, t.id, "agent", "Accepted AI classification" if d.accept else "Set classification manually", f"{category} · {priority} · {actor.name}")
     ai = {"category": a.category, "priority": a.priority} if a else None
-    # Learn only from a real model guess: not the precheck or outage fallback the agent was told to fill in.
-    real_guess = bool(a and not a.error and a.attempts > 0 and a.summary != FALLBACK_SUMMARY)
-    corrected = bool(ai and real_guess and (ai["category"], ai["priority"]) != (category, priority))
+    corrected = is_correction(a, category, priority)
     episodic.record(db, t, "decision",
                     f"{actor.name} confirmed {category} · {priority}" if d.accept else
                     f"{actor.name} set {category} · {priority}" + (f" (AI said {ai['category']} · {ai['priority']})" if corrected else ""),

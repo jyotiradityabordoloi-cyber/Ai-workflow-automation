@@ -1,0 +1,41 @@
+# Resets the public SupportFlow demo to its seed data every night, classified by the real model.
+# It also keeps the free Qdrant cluster active (free clusters are suspended after a week without use).
+# Needs repository secrets: DATABASE_URL, GROQ_API_KEY, QDRANT_URL, QDRANT_API_KEY (see supportflow/DEPLOY.md).
+name: SupportFlow demo reset
+
+on:
+  schedule:
+    - cron: "0 3 * * *"   # 03:00 UTC daily
+  workflow_dispatch: {}    # "Run workflow" button for a manual reset
+
+concurrency:
+  group: supportflow-demo-reset
+  cancel-in-progress: false
+
+jobs:
+  reset:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    defaults:
+      run:
+        working-directory: supportflow/backend
+    env:
+      DATABASE_URL: ${{ secrets.DATABASE_URL }}
+      GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
+      QDRANT_URL: ${{ secrets.QDRANT_URL }}
+      QDRANT_API_KEY: ${{ secrets.QDRANT_API_KEY }}
+      MEMORY_BACKEND: qdrant
+      EMBEDDING_PROVIDER: qdrant-cloud
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.14"
+          cache: pip
+          cache-dependency-path: supportflow/backend/requirements.txt
+      - name: Install
+        run: pip install -r requirements.txt
+      - name: Migrate
+        run: alembic upgrade head
+      - name: Reset to seed data and classify
+        run: python -m app.seed.load --reset --analyze

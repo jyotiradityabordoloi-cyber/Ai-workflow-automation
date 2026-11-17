@@ -48,6 +48,8 @@ copy .env.example .env.local               # NEXT_PUBLIC_API_MODE=live
 npm install && npm run dev                 # http://localhost:3000
 ```
 
+To put it online for free (Vercel, Render, Neon, Qdrant Cloud), follow [DEPLOY.md](DEPLOY.md).
+
 The backend reads `GROQ_API_KEY` from the repo-root `.env`. Without a key it uses a clearly labelled keyword
 classifier. Set `NEXT_PUBLIC_API_MODE=mock` to run the frontend alone on mock data.
 
@@ -77,7 +79,7 @@ Two kinds of memory, stored where each belongs and recalled by the LangGraph `re
 
 | | Episodic: *what happened* | Semantic: *what the team knows* |
 |---|---|---|
-| Store | PostgreSQL `episodes` table | ChromaDB, cosine similarity, `backend/.memory` (gitignored) |
+| Store | PostgreSQL `episodes` table | ChromaDB locally (`backend/.memory`, gitignored); Qdrant when deployed. Both rebuildable from PostgreSQL |
 | Key | the customer (email, else company + name) | meaning (all-MiniLM-L6-v2 embeddings, run locally) |
 | Written when | a ticket is opened, classified, decided, sent to a senior, approved by a manager, resolved | an agent **resolves** a ticket (its fix becomes knowledge) or **overrides** a real AI guess (a correction) |
 | Recalled as | the customer's earlier tickets (90 days, up to 5), one line each: what they asked, how it was classified, how it ended | top-3 similar resolved problems (≥ 0.30) and corrections on near-identical tickets (≥ 0.60) |

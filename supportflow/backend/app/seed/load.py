@@ -16,7 +16,7 @@ from ..ai.llm import build_llm
 from ..config import get_settings
 from ..db import get_engine
 from ..main import configure_logging
-from ..memory.semantic import build_semantic_memory
+from ..memory.semantic import build_semantic_memory, seed_knowledge
 from ..models import AuditEvent, Ticket
 from ..services.tickets import analyze_ticket, record_opened
 
@@ -33,7 +33,8 @@ def main() -> None:
     rows = json.loads(SEED.read_text(encoding="utf-8"))
     now = datetime.now(timezone.utc)
     settings = get_settings()
-    memory = build_semantic_memory(settings.memory_dir, settings.embedding_provider)
+    memory = build_semantic_memory(settings)
+    seed_knowledge(memory)
     with Session(get_engine()) as db:
         if args.reset:
             db.execute(delete(Ticket))  # analyses, audit events and episodes cascade

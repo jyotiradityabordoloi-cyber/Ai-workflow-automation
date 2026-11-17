@@ -10,12 +10,16 @@ from fastapi import FastAPI, Request
 from fastapi.exceptions import RequestValidationError
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
+from sqlalchemy.orm import Session
 
 from .ai.classification import build_classifier
 from .ai.llm import LLMClient, build_llm
 from .api import router
 from .config import get_settings
+from .db import get_engine
+from .memory.rebuild import ensure_ready
 from .memory.semantic import build_semantic_memory
+from .ratelimit import RateLimiter
 from .services.tickets import DomainError
 
 request_id: contextvars.ContextVar[str] = contextvars.ContextVar("request_id", default="-")
@@ -50,7 +54,9 @@ def create_app(llm: LLMClient | None = None, memory: Any = None) -> FastAPI:
         app.state.memory = memory
         if memory is None:
             try:
-                app.state.memory = build_semantic_memory(settings.memory_dir, settings.embedding_provider)
+                app.state.memory = build_semantic_memory(settings)
+                with Session(get_engine()) as db:
+                    ensure_ready(db, app.state.memory)  # seed the KB, and restore learned memory if the store was wiped
             except Exception:  # noqa: BLE001 - run without semantic memory rather than not at all
                 log.exception("semantic memory unavailable; classifying without it")
         app.state.classifier = build_classifier(app.state.llm, app.state.memory)
@@ -59,14 +65,21 @@ def create_app(llm: LLMClient | None = None, memory: Any = None) -> FastAPI:
         yield
 
     app = FastAPI(title="SupportFlow AI", version="0.2.0", lifespan=lifespan)
-    app.add_middleware(CORSMiddleware, allow_origins=settings.cors_origins, allow_methods=["*"],
-                       allow_headers=["Content-Type", "X-Agent-Name", "X-Agent-Role"])
+
+    limiter = RateLimiter(settings.rate_limit_ai_per_10min, settings.rate_limit_writes_per_10min)
+    app.state.limiter = limiter
 
     @app.middleware("http")
     async def log_requests(request: Request, call_next):
         token = request_id.set(request.headers.get("X-Request-ID") or uuid.uuid4().hex[:8])
         started = time.perf_counter()
-        response = await call_next(request)
+        wait = limiter.check(request)
+        if wait is not None:
+            mins = max(1, round(wait / 60))
+            response = JSONResponse(status_code=429, headers={"Retry-After": str(wait)},
+                                    content={"error": f"This public demo allows a limited number of actions per visitor. Try again in about {mins} minute{'s' if mins != 1 else ''}."})
+        else:
+            response = await call_next(request)
         # method, path, status and duration only: ticket text is never logged
         log.info("%s %s -> %d (%.0f ms)", request.method, request.url.path, response.status_code, (time.perf_counter() - started) * 1000)
         response.headers["X-Request-ID"] = request_id.get()
@@ -88,6 +101,9 @@ def create_app(llm: LLMClient | None = None, memory: Any = None) -> FastAPI:
         return JSONResponse(status_code=500, content={"error": "Internal error", "requestId": request_id.get()})
 
     app.include_router(router)
+    # Added last so it is the outermost layer: every response, a 429 from the limiter included, carries CORS headers.
+    app.add_middleware(CORSMiddleware, allow_origins=settings.cors_origins, allow_methods=["*"],
+                       allow_headers=["Content-Type", "X-Agent-Name", "X-Agent-Role"], expose_headers=["Retry-After", "X-Request-ID"])
     return app
 
 

@@ -6,7 +6,7 @@ import { useToasts } from "@/lib/toast";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { createContext, type ReactNode, useCallback, useContext, useEffect, useState } from "react";
-import { api, useWorkspace, useWorkspaceOrNull } from "@/lib/api";
+import { api, API_URL, useWorkspace, useWorkspaceOrNull } from "@/lib/api";
 import { initials } from "@/lib/format";
 
 const NAV = [
@@ -39,9 +39,13 @@ function ModeBanner() {
     <div className="rounded-lg bg-ok-soft px-2.5 py-2 text-[11px] leading-4 text-ok">
       <b>Live backend.</b> Classification by {health?.llmConfigured ? health.llmModel : "a fallback (no API key)"}.
       <span className="text-muted"> Drafting and escalation are still mock (steps 3–4).</span>
+      {PUBLIC_DEMO && <span className="mt-1 block text-muted">Public demo: try anything. Data resets every night, and AI actions are rate-limited per visitor.</span>}
     </div>
   );
 }
+
+const PUBLIC_DEMO = process.env.NEXT_PUBLIC_PUBLIC_DEMO === "true";
+const LOCAL_API = /localhost|127\.0\.0\.1/.test(API_URL);
 
 function Sidebar() {
   const ws = useWorkspace();
@@ -97,15 +101,30 @@ function Sidebar() {
 
 type Health = Awaited<ReturnType<typeof api.health>>;
 
+/** A hosted free backend sleeps when idle and takes up to a minute to wake: keep trying for that long, and say so. */
+const WAKE_ATTEMPTS = LOCAL_API ? 1 : 8;
+const WAKE_DELAY_MS = 8000;
+
 function useBackend() {
-  const [state, setState] = useState<{ ready: boolean; error: string | null; health: Health | null }>({ ready: api.mode !== "live", error: null, health: null });
+  const [state, setState] = useState<{ ready: boolean; error: string | null; health: Health | null; slow: boolean }>({ ready: api.mode !== "live", error: null, health: null, slow: false });
   const connect = useCallback(() => {
-    setState((s) => ({ ...s, error: null }));
-    Promise.all([api.health(), api.sync()])
-      .then(([health]) => setState({ ready: true, error: null, health }))
-      .catch((e: Error) => setState({ ready: false, error: e.message, health: null }));
+    if (api.mode !== "live") return;
+    let cancelled = false;
+    setState((s) => ({ ...s, error: null, slow: false }));
+    const slowTimer = setTimeout(() => !cancelled && setState((s) => ({ ...s, slow: true })), 4000);
+    const attempt = (n: number) =>
+      Promise.all([api.health(), api.sync()])
+        .then(([health]) => { if (!cancelled) setState({ ready: true, error: null, health, slow: false }); })
+        .catch((e: Error) => {
+          if (cancelled) return;
+          if (n < WAKE_ATTEMPTS) setTimeout(() => attempt(n + 1), WAKE_DELAY_MS);
+          else setState({ ready: false, error: e.message, health: null, slow: false });
+        })
+        .finally(() => clearTimeout(slowTimer));
+    attempt(1);
+    return () => { cancelled = true; clearTimeout(slowTimer); };
   }, []);
-  useEffect(() => { connect(); }, [connect]);
+  useEffect(() => connect(), [connect]);
   return { ...state, retry: connect };
 }
 
@@ -120,14 +139,18 @@ export function AppShell({ children }: { children: ReactNode }) {
       <div className="grid min-h-dvh place-items-center p-6">
         <div className="max-w-md rounded-xl border border-line bg-surface p-5 text-[13px]">
           <p className="font-medium">Can&apos;t reach the SupportFlow backend</p>
-          <p className="mt-1 text-muted">{backend.error}. Start it with <code className="font-mono">uvicorn app.main:app --port 8000</code> in <code className="font-mono">supportflow/backend</code>, or run the frontend in mock mode.</p>
-          <button onClick={backend.retry} className="mt-3 rounded-lg border border-line px-3 py-1.5 hover:bg-hover">Retry</button>
+          {LOCAL_API
+            ? <p className="mt-1 text-muted">{backend.error}. Start it with <code className="font-mono">uvicorn app.main:app --port 8000</code> in <code className="font-mono">supportflow/backend</code>, or run the frontend in mock mode.</p>
+            : <p className="mt-1 text-muted">The server didn&apos;t answer after a minute of trying. It may be restarting; please try again shortly.</p>}
+          <button onClick={() => backend.retry()} className="mt-3 rounded-lg border border-line px-3 py-1.5 hover:bg-hover">Retry</button>
         </div>
       </div>
     );
   }
   if (!ws || !backend.ready) {
-    return <LoadingShell label={api.mode === "live" ? "Connecting to the backend…" : "Loading workspace…"} />;
+    return <LoadingShell label={api.mode !== "live" ? "Loading workspace…"
+      : backend.slow && !LOCAL_API ? "Waking up the server. This free demo sleeps when nobody is using it, so the first visit can take up to a minute."
+      : "Connecting to the backend…"} />;
   }
   return (
     <BackendContext.Provider value={backend.health}>

@@ -1,0 +1,36 @@
+# Render Blueprint for the SupportFlow AI backend (free plan). See supportflow/DEPLOY.md.
+# Secrets marked `sync: false` are asked for once, in Render's dashboard, when the Blueprint is created.
+services:
+  - type: web
+    name: supportflow-api
+    runtime: python
+    plan: free
+    rootDir: supportflow/backend
+    buildCommand: pip install -r requirements.txt
+    # Migrations run on every start, so a deploy never meets an out-of-date schema.
+    startCommand: alembic upgrade head && uvicorn app.main:app --host 0.0.0.0 --port $PORT
+    healthCheckPath: /api/health
+    autoDeploy: true
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.14.7          # the version the test suite runs on
+      - key: DATABASE_URL      # Neon connection string (postgresql://...?sslmode=require)
+        sync: false
+      - key: GROQ_API_KEY
+        sync: false
+      - key: QDRANT_URL        # https://<cluster-id>.<region>.cloud.qdrant.io
+        sync: false
+      - key: QDRANT_API_KEY
+        sync: false
+      - key: CORS_ORIGINS      # JSON list with the Vercel address, e.g. ["https://supportflow.vercel.app"]
+        sync: false
+      - key: MEMORY_BACKEND
+        value: qdrant
+      - key: EMBEDDING_PROVIDER
+        value: qdrant-cloud    # Qdrant Cloud Inference runs all-MiniLM-L6-v2 for free; no model on this server
+      - key: RATE_LIMIT_AI_PER_10MIN
+        value: "15"
+      - key: RATE_LIMIT_WRITES_PER_10MIN
+        value: "60"
+      - key: LOG_LEVEL
+        value: INFO

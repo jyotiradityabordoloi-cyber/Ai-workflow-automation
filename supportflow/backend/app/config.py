@@ -1,6 +1,8 @@
 from functools import lru_cache
 from pathlib import Path
+from typing import Literal
 
+from pydantic import field_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 BACKEND_DIR = Path(__file__).resolve().parents[1]
@@ -27,10 +29,16 @@ class Settings(BaseSettings):
     manager_keywords: tuple[str, ...] = ("legal", "lawyer", "refund", "chargeback")
 
     # Agent memory. Episodic = per-customer event history (PostgreSQL); semantic = resolved-ticket knowledge and
-    # agent corrections in a ChromaDB vector store. "onnx" embeds with all-MiniLM-L6-v2 (downloaded once, ~80 MB,
-    # runs locally); "hash" is a deterministic offline bag-of-words embedder for tests.
+    # agent corrections in a vector store:
+    #   memory_backend "chroma": a local folder (memory_dir), for development.
+    #   memory_backend "qdrant": Qdrant at qdrant_url, for deployment (the API server keeps no state on disk).
+    # embedding_provider: "onnx" = all-MiniLM-L6-v2 in-process (downloaded once, ~80 MB); "hash" = deterministic
+    # offline embedder for tests; "qdrant-cloud" = the same MiniLM model run by Qdrant Cloud Inference (free tier).
+    memory_backend: Literal["chroma", "qdrant"] = "chroma"
     memory_dir: Path = BACKEND_DIR / ".memory"
-    embedding_provider: str = "onnx"
+    embedding_provider: Literal["onnx", "hash", "qdrant-cloud"] = "onnx"
+    qdrant_url: str | None = None
+    qdrant_api_key: str | None = None
     memory_history_days: int = 90
     memory_history_limit: int = 5          # earlier tickets of the same customer shown to the classifier
     knowledge_min_similarity: float = 0.3  # below this a "similar resolved ticket" is noise
@@ -39,6 +47,20 @@ class Settings(BaseSettings):
     cors_origins: list[str] = ["http://localhost:3000"]
     ticket_url_base: str = "http://localhost:3000/tickets"
     log_level: str = "INFO"
+
+    # Per-client-IP limits for a public demo, per 10 minutes (0 = off, the local default). "ai" counts requests that
+    # call the LLM (create with analyze, re-analyze); "writes" counts every POST.
+    rate_limit_ai_per_10min: int = 0
+    rate_limit_writes_per_10min: int = 0
+
+    @field_validator("database_url")
+    @classmethod
+    def _sqlalchemy_driver(cls, v: str) -> str:
+        """Hosted Postgres (Neon, Render, Supabase) hands out postgres:// or postgresql:// URLs; use psycopg 3."""
+        for prefix in ("postgres://", "postgresql://"):
+            if v.startswith(prefix):
+                return "postgresql+psycopg://" + v[len(prefix):]
+        return v
 
 
 @lru_cache
