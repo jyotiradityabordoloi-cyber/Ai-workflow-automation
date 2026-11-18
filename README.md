@@ -1,5 +1,10 @@
 # AI Workflow Automation
 
+> **Live: SupportFlow AI**, the agent workspace built on this work:
+> [product page](https://ai-workflow-automation-site.vercel.app) ·
+> [try the workspace](https://ai-workflow-automation-rose.vercel.app) ·
+> [how it's built](supportflow/README.md)
+
 Two business processes automated with a free LLM, run by a small task orchestrator, with the time saved
 and the AI's accuracy **measured rather than claimed**.
 

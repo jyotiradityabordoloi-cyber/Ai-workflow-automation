@@ -3,6 +3,18 @@
 An internal support-agent workspace: AI ticket classification, grounded response drafting and
 structured escalation, with a human approving every AI output. Not a chatbot.
 
+## Live demo
+
+| | |
+|---|---|
+| **Product page** | https://ai-workflow-automation-site.vercel.app |
+| **Agent workspace** (the app) | https://ai-workflow-automation-rose.vercel.app |
+| **API health** | https://ai-workflow-automation-k2m1.onrender.com/api/health |
+
+A public demo on free plans: the API sleeps after 15 idle minutes, so the first visit can take up to a minute
+to wake it. Demo data resets every night at 03:00 UTC, and AI actions are rate-limited per visitor.
+How it is deployed: [DEPLOY.md](DEPLOY.md).
+
 ## Build plan (incremental)
 
 | Step | Scope | Status |
