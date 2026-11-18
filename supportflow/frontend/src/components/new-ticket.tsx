@@ -47,11 +47,11 @@ function NewTicketDialog({ onClose }: { onClose: () => void }) {
 
   return (
     <dialog ref={ref} onClose={onClose} onCancel={onClose}
-      className="m-auto w-[min(560px,calc(100vw-32px))] rounded-xl border border-line bg-surface p-0 text-ink shadow-2xl backdrop:bg-black/40">
+      className="sf-modal m-auto w-[min(560px,calc(100vw-32px))] rounded-xl border border-line bg-surface p-0 text-ink shadow-2xl backdrop:bg-black/40">
       <form method="dialog" onSubmit={(e) => { e.preventDefault(); if (valid) create.run(); }}>
         <div className="flex items-center justify-between border-b border-line px-5 py-3">
           <h2 className="text-sm font-semibold">New ticket</h2>
-          <button type="button" onClick={onClose} aria-label="Close" className="rounded p-1 text-muted hover:bg-hover"><X className="size-4" /></button>
+          <button type="button" onClick={onClose} aria-label="Close" className="rounded p-1 text-muted transition-[background-color,scale] duration-150 ease-[var(--ease-out)] hover:bg-hover active:scale-[.92] motion-reduce:active:scale-100"><X className="size-4" /></button>
         </div>
         <div className="grid gap-3 px-5 py-4 sm:grid-cols-2">
           <label className={label}>Customer name *

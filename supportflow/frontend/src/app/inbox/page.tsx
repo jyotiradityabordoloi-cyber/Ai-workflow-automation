@@ -75,7 +75,7 @@ function InboxView() {
             const n = ws.tickets.filter(t.match).length;
             return (
               <button key={t.key} onClick={() => set("tab", t.key === "open" ? "" : t.key)}
-                className={clsx("whitespace-nowrap border-b-2 px-3 py-2.5 text-[13px] transition", tab === t.key ? "border-accent font-medium text-ink" : "border-transparent text-muted hover:text-ink")}>
+                className={clsx("whitespace-nowrap border-b-2 px-3 py-2.5 text-[13px] transition-colors duration-150", tab === t.key ? "border-accent font-medium text-ink" : "border-transparent text-muted hover:text-ink")}>
                 {t.label} <span className="ml-1 text-xs text-faint tabular-nums">{n}</span>
               </button>
             );

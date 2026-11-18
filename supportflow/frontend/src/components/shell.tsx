@@ -69,7 +69,7 @@ function Sidebar() {
           const n = count ? counts[count] : 0;
           return (
             <Link key={href} href={href}
-              className={clsx("flex items-center gap-2.5 whitespace-nowrap rounded-lg px-2.5 py-1.5 text-[13px] transition",
+              className={clsx("flex items-center gap-2.5 whitespace-nowrap rounded-lg px-2.5 py-1.5 text-[13px] transition-colors duration-150",
                 active ? "bg-hover font-medium text-ink" : "text-muted hover:bg-hover hover:text-ink")}>
               <Icon className="size-4" />
               <span className="flex-1">{label}</span>
@@ -142,7 +142,7 @@ export function AppShell({ children }: { children: ReactNode }) {
           {LOCAL_API
             ? <p className="mt-1 text-muted">{backend.error}. Start it with <code className="font-mono">uvicorn app.main:app --port 8000</code> in <code className="font-mono">supportflow/backend</code>, or run the frontend in mock mode.</p>
             : <p className="mt-1 text-muted">The server didn&apos;t answer after a minute of trying. It may be restarting; please try again shortly.</p>}
-          <button onClick={() => backend.retry()} className="mt-3 rounded-lg border border-line px-3 py-1.5 hover:bg-hover">Retry</button>
+          <button onClick={() => backend.retry()} className="mt-3 rounded-lg border border-line px-3 py-1.5 transition-[background-color,scale] duration-150 ease-[var(--ease-out)] hover:bg-hover active:scale-[.97] motion-reduce:active:scale-100">Retry</button>
         </div>
       </div>
     );
@@ -169,8 +169,11 @@ function Toaster() {
   return (
     <div aria-live="polite" className="pointer-events-none fixed right-4 bottom-4 z-50 flex flex-col items-end gap-2">
       {toasts.map((t) => (
-        <div key={t.id} role="status"
-          className="flex items-center gap-2 rounded-lg border border-line bg-surface px-3 py-2 text-[13px] shadow-lg motion-safe:animate-[toast-in_180ms_ease-out]">
+        <div key={t.id} role="status" data-leaving={t.leaving || undefined}
+          className="flex items-center gap-2 rounded-lg border border-line bg-surface px-3 py-2 text-[13px] shadow-lg
+            transition-[opacity,translate] duration-200 ease-[var(--ease-out)] starting:translate-y-1.5 starting:opacity-0
+            data-leaving:translate-y-1 data-leaving:opacity-0 data-leaving:duration-150
+            motion-reduce:translate-y-0 motion-reduce:starting:translate-y-0 motion-reduce:data-leaving:translate-y-0">
           {t.tone === "ok" ? <Check className="size-3.5 text-ok" /> : <X className="size-3.5 text-bad" />}
           {t.text}
         </div>

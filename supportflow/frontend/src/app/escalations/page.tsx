@@ -96,7 +96,7 @@ export default function EscalationsPage() {
           <div className="flex gap-1">
             {TABS.map((t) => (
               <button key={t.key} onClick={() => setTab(t.key)}
-                className={clsx("rounded-lg px-3 py-1.5 text-[13px] transition", tab === t.key ? "bg-hover font-medium" : "text-muted hover:bg-hover hover:text-ink")}>
+                className={clsx("rounded-lg px-3 py-1.5 text-[13px] transition-colors duration-150", tab === t.key ? "bg-hover font-medium" : "text-muted hover:bg-hover hover:text-ink")}>
                 {t.label} <span className="text-xs text-faint tabular-nums">{ws.escalations.filter((e) => e.status === t.key).length}</span>
               </button>
             ))}

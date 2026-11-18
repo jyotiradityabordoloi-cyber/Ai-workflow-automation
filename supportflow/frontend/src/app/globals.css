@@ -24,10 +24,22 @@
   --bad-soft: #feebec;
   --info: #0b68cb;
   --info-soft: #e6f1fd;
+  /* Two chart colours, used as a pair everywhere data is drawn: c1 = incoming / open work,
+     c2 = resolved / agreed. Semantic red and amber stay for priority and risk only. */
+  --c1: #4c6ef5;
+  --c1-soft: #eef1fe;
+  --c1-strong: #3f5ee8; /* filled surfaces with white text */
+  --c2: #16a34a;
+  --c2-soft: #e8f7ee;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
+/* The workspace is always white: a clean, bright surface whatever the computer's own theme. The dark palette
+   below is kept for an opt-in switch later (set data-theme="dark" on <html>); nothing turns it on today. */
+:root {
+  color-scheme: light;
+}
+:root[data-theme="dark"] {
+    color-scheme: dark;
     --bg: #141414;
     --surface: #1c1c1c;
     --subtle: #232323;
@@ -48,7 +60,11 @@
     --bad-soft: #351619;
     --info: #70b8ff;
     --info-soft: #10233a;
-  }
+    --c1: #8299ff;
+    --c1-soft: #1b2142;
+    --c1-strong: #3448b5;
+    --c2: #4ade80;
+    --c2-soft: #12291e;
 }
 
 @theme inline {
@@ -72,6 +88,11 @@
   --color-bad-soft: var(--bad-soft);
   --color-info: var(--info);
   --color-info-soft: var(--info-soft);
+  --color-c1: var(--c1);
+  --color-c1-soft: var(--c1-soft);
+  --color-c1-strong: var(--c1-strong);
+  --color-c2: var(--c2);
+  --color-c2-soft: var(--c2-soft);
   --font-sans: var(--font-epilogue);
   --font-mono: var(--font-jetbrains);
 }
@@ -103,9 +124,21 @@ h1 {
   .sf-chrome::after { display: none; }
 }
 
-@keyframes toast-in {
-  from { opacity: 0; transform: translateY(6px); }
-  to { opacity: 1; transform: none; }
+/* Motion. One strong ease-out for everything that responds to the user; the built-in ease-out is too weak
+   to feel immediate. UI motion stays at or under 200ms. */
+:root {
+  --ease-out: cubic-bezier(0.23, 1, 0.32, 1);
+}
+
+/* The new-ticket modal: a short scale + fade from the centre (a modal has no trigger to grow from), the
+   backdrop fades with it. Closing is instant: it is often Escape, and keyboard actions never animate. */
+dialog.sf-modal[open] {
+  transition: opacity 200ms var(--ease-out), transform 200ms var(--ease-out);
+  @starting-style { opacity: 0; transform: scale(0.96); }
+}
+dialog.sf-modal[open]::backdrop {
+  transition: opacity 200ms var(--ease-out);
+  @starting-style { opacity: 0; }
 }
 
 html,
@@ -128,9 +161,9 @@ body {
   outline-offset: 2px;
 }
 
+/* Reduced motion means gentler, not none: movement goes (press scale, slide-ins, the skeleton pulse),
+   fades and colour changes stay because they help people follow what changed. */
 @media (prefers-reduced-motion: reduce) {
-  * {
-    animation: none !important;
-    transition: none !important;
-  }
+  html { scroll-behavior: auto; }
+  dialog.sf-modal[open] { @starting-style { transform: none; } }
 }

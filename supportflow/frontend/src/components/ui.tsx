@@ -89,10 +89,10 @@ export function Button({ variant = "secondary", loading, className, children, di
       disabled={disabled || loading}
       className={clsx(
         // feedback lives on the press and is instant (no hover lift): Apple-style responsiveness
-        "inline-flex h-8 shrink-0 items-center justify-center gap-1.5 whitespace-nowrap rounded-lg border px-3 text-[13px] font-medium transition-[background-color,transform,filter] duration-100 ease-out active:scale-[.97] disabled:cursor-not-allowed disabled:opacity-50 disabled:active:scale-100",
+        "inline-flex h-8 shrink-0 items-center justify-center gap-1.5 whitespace-nowrap rounded-lg border px-3 text-[13px] font-medium transition-[background-color,border-color,color,scale,filter] duration-150 ease-[var(--ease-out)] active:scale-[.97] motion-reduce:active:scale-100 disabled:cursor-not-allowed disabled:opacity-50 disabled:active:scale-100",
         BTN[variant], className)}
     >
-      {loading && <Loader2 className="size-3.5 animate-spin" />}
+      {loading && <Loader2 className="size-3.5 animate-spin motion-reduce:animate-[spin_1.6s_linear_infinite]" />}
       {children}
     </button>
   );
